@@ -2,6 +2,7 @@ class Word {
 
     constructor(wordElement) {
         this.wordElement = wordElement;
+        this.mirrorElement;
         this.length = 0;
         this.previousLength = 0;
         this.nextLength = 0;
@@ -43,11 +44,30 @@ class Word {
     }
 
     mark(){
-        this.wordElement.classList.add('fr-focus-word');
+        let mirror = this.wordElement.cloneNode(true);
+        this.mirrorElement = mirror;
+        console.assert(!!mirror,"Mirror element must be not null");
+
+        this.wordElement.parentElement.appendChild(mirror);
+        let rect = this.wordElement.getBoundingClientRect();
+        mirror.style.position = "absolute";
+        //Fix this fix
+        mirror.style.top = rect.top + window.scrollY +'px';
+        mirror.style.left = rect.left + window.scrollX +'px';
+        // this.wordElement.classList.add('fr-focus-word');
+        mirror.classList.add('fr-focus-word');
+
+        this.wordElement.style.visibility ="hidden";
+        
+        // console.log(this.wordElement.getBoundingClientRect(),"Word rect");
+        // console.log(this.mirrorElement.getBoundingClientRect(),"Mirror word rect");
+        // console.log(window.screenX, window.screenY, 'window scrools');
     }
 
     unmark(){
         this.wordElement.classList.remove('fr-focus-word');
+        this.wordElement.style.visibility ="";
+        this.wordElement.parentElement.removeChild(this.mirrorElement);
     }
 
     scrollIntoView(){

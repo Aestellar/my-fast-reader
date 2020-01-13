@@ -65,6 +65,7 @@ class DOMHelper {
 
 static getOrderedElementListByClass(containerElt, className){
     let orderedNodeList = DOMHelper.getOrderedNodeList(containerElt);
+    console.log(orderedNodeList, 'orderedNodeList');
     let orderedElementList = orderedNodeList.filter((node)=>{
         if(node.nodeType===1&&node.classList.contains(className)){
             return true;
@@ -118,7 +119,7 @@ static getOrderedNodeList(element,options) {
             }
 
             timeout += 1;
-            if (timeout > 100000) {
+            if (timeout > 1000000) {
                 break;
             }
         }

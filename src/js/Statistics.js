@@ -40,24 +40,32 @@ class Statistics {
     }
 
     increaseSpeed(e){
-        this.speed+=10;
+        let value = 10;
+        if(e.shiftKey) value = 100;
+        this.speed+=value;
         this.updateView();
     }
 
     decreaseSpeed(e){
-        this.speed-=10;
+        let value = 10;
+        if(e.shiftKey) value = 100;
+        this.speed-=value;
+
         if(this.speed<0){
             this.speed=0;
         }
+
         this.updateView();
     }
 
-    increaseWordsPerSelection(){
+    increaseWordsPerSelection(value){
+        value?value:1;
         this.wordsPerSelection+=1;
         this.updateView();
     }
 
-    decreaseWordsPerSelection(){
+    decreaseWordsPerSelection(value){
+        value = value?value:1;
         this.wordsPerSelection-=1;
         if(this.wordsPerSelection< 1){
             this.wordsPerSelection=1;

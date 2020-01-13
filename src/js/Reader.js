@@ -21,7 +21,9 @@ class Reader {
 
         TextProcessor.formatText(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
+        console.log(wordsElementList.length,'wordsElementList');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
+        console.log(indexedWordList.length,'wordsElementList');
         this.wordList = Word.createWordList(indexedWordList);
         console.log('WordList', this.wordList);
 
@@ -73,7 +75,7 @@ class Reader {
 
 
     }
-
+// TODO Remove event binding to Play Button
     pauseCallback(e) {
         if (this.isPlaying()) {
             console.log('Paused');

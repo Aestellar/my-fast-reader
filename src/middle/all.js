@@ -68,6 +68,7 @@ class DOMHelper {
 
 static getOrderedElementListByClass(containerElt, className){
     let orderedNodeList = DOMHelper.getOrderedNodeList(containerElt);
+    console.log(orderedNodeList, 'orderedNodeList');
     let orderedElementList = orderedNodeList.filter((node)=>{
         if(node.nodeType===1&&node.classList.contains(className)){
             return true;
@@ -121,7 +122,7 @@ static getOrderedNodeList(element,options) {
             }
 
             timeout += 1;
-            if (timeout > 100000) {
+            if (timeout > 1000000) {
                 break;
             }
         }
@@ -244,7 +245,9 @@ class Reader {
 
         TextProcessor.formatText(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
+        console.log(wordsElementList.length,'wordsElementList');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
+        console.log(indexedWordList.length,'wordsElementList');
         this.wordList = Word.createWordList(indexedWordList);
         console.log('WordList', this.wordList);
 
@@ -296,7 +299,7 @@ class Reader {
 
 
     }
-
+// TODO Remove event binding to Play Button
     pauseCallback(e) {
         if (this.isPlaying()) {
             console.log('Paused');
@@ -448,24 +451,32 @@ class Statistics {
     }
 
     increaseSpeed(e){
-        this.speed+=10;
+        let value = 10;
+        if(e.shiftKey) value = 100;
+        this.speed+=value;
         this.updateView();
     }
 
     decreaseSpeed(e){
-        this.speed-=10;
+        let value = 10;
+        if(e.shiftKey) value = 100;
+        this.speed-=value;
+
         if(this.speed<0){
             this.speed=0;
         }
+
         this.updateView();
     }
 
-    increaseWordsPerSelection(){
+    increaseWordsPerSelection(value){
+        value?value:1;
         this.wordsPerSelection+=1;
         this.updateView();
     }
 
-    decreaseWordsPerSelection(){
+    decreaseWordsPerSelection(value){
+        value = value?value:1;
         this.wordsPerSelection-=1;
         if(this.wordsPerSelection< 1){
             this.wordsPerSelection=1;
@@ -618,7 +629,7 @@ class TextProcessor {
     static parseWords(string){
         let wordList = string.split(' ');
         wordList = wordList.filter((el)=>{
-            if(el.length>0){
+            if(el.trim().length>0){
                 return true;
             }
             // console.log(wordsArr);
@@ -807,6 +818,7 @@ class Word {
 
     constructor(wordElement) {
         this.wordElement = wordElement;
+        this.mirrorElement;
         this.length = 0;
         this.previousLength = 0;
         this.nextLength = 0;
@@ -848,11 +860,30 @@ class Word {
     }
 
     mark(){
-        this.wordElement.classList.add('fr-focus-word');
+        let mirror = this.wordElement.cloneNode(true);
+        this.mirrorElement = mirror;
+        console.assert(!!mirror,"Mirror element must be not null");
+
+        this.wordElement.parentElement.appendChild(mirror);
+        let rect = this.wordElement.getBoundingClientRect();
+        mirror.style.position = "absolute";
+        //Fix this fix
+        mirror.style.top = rect.top + window.scrollY +'px';
+        mirror.style.left = rect.left + window.scrollX +'px';
+        // this.wordElement.classList.add('fr-focus-word');
+        mirror.classList.add('fr-focus-word');
+
+        this.wordElement.style.visibility ="hidden";
+        
+        // console.log(this.wordElement.getBoundingClientRect(),"Word rect");
+        // console.log(this.mirrorElement.getBoundingClientRect(),"Mirror word rect");
+        // console.log(window.screenX, window.screenY, 'window scrools');
     }
 
     unmark(){
         this.wordElement.classList.remove('fr-focus-word');
+        this.wordElement.style.visibility ="";
+        this.wordElement.parentElement.removeChild(this.mirrorElement);
     }
 
     scrollIntoView(){

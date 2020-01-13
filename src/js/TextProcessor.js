@@ -52,7 +52,7 @@ class TextProcessor {
     static parseWords(string){
         let wordList = string.split(' ');
         wordList = wordList.filter((el)=>{
-            if(el.length>0){
+            if(el.trim().length>0){
                 return true;
             }
             // console.log(wordsArr);
