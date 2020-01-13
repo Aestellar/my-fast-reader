@@ -43,14 +43,18 @@ class DOMHelper {
 
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
+        return DOMHelper.isInViewportRect(bounding);
+    };
+
+    static isInViewportRect = function (bounding) {
+        // var bounding = elem.getBoundingClientRect();
         return (
             bounding.top >= 0 &&
             bounding.left >= 0 &&
             bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
             bounding.right <= (window.innerWidth || document.documentElement.clientWidth)
         );
-    };
-
+    };   
 
    static getIndexedElementList(orderedList,indexName){
        let indexedList = orderedList.map((el,index)=>{

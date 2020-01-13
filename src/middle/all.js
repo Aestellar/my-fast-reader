@@ -46,14 +46,18 @@ class DOMHelper {
 
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
+        return DOMHelper.isInViewportRect(bounding);
+    };
+
+    static isInViewportRect = function (bounding) {
+        // var bounding = elem.getBoundingClientRect();
         return (
             bounding.top >= 0 &&
             bounding.left >= 0 &&
             bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
             bounding.right <= (window.innerWidth || document.documentElement.clientWidth)
         );
-    };
-
+    };   
 
    static getIndexedElementList(orderedList,indexName){
        let indexedList = orderedList.map((el,index)=>{
@@ -819,6 +823,7 @@ class Word {
     constructor(wordElement) {
         this.wordElement = wordElement;
         this.mirrorElement;
+        this.boundingRect;
         this.length = 0;
         this.previousLength = 0;
         this.nextLength = 0;
@@ -864,14 +869,17 @@ class Word {
         this.mirrorElement = mirror;
         console.assert(!!mirror,"Mirror element must be not null");
 
-        this.wordElement.parentElement.appendChild(mirror);
+  
         let rect = this.wordElement.getBoundingClientRect();
+        this.boundingRect = rect;
         mirror.style.position = "absolute";
         //Fix this fix
         mirror.style.top = rect.top + window.scrollY +'px';
         mirror.style.left = rect.left + window.scrollX +'px';
+        mirror.style.zIndex = 120000;
         // this.wordElement.classList.add('fr-focus-word');
         mirror.classList.add('fr-focus-word');
+        this.wordElement.parentElement.appendChild(mirror);
 
         this.wordElement.style.visibility ="hidden";
         
@@ -881,13 +889,13 @@ class Word {
     }
 
     unmark(){
-        this.wordElement.classList.remove('fr-focus-word');
+        // this.wordElement.classList.remove('fr-focus-word');
         this.wordElement.style.visibility ="";
         this.wordElement.parentElement.removeChild(this.mirrorElement);
     }
 
     scrollIntoView(){
-        let inView = DOMHelper.isInViewport(this.wordElement);
+        let inView = DOMHelper.isInViewportRect(this.boundingRect);
         if(!inView){
             //console.log('scroll');
             this.wordElement.scrollIntoViewIfNeeded();
