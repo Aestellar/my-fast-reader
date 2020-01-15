@@ -59,9 +59,14 @@ class Word {
         mirror.style.zIndex = 120000;
         // this.wordElement.classList.add('fr-focus-word');
         mirror.classList.add('fr-focus-word');
-        this.wordElement.parentElement.appendChild(mirror);
+        mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
+        const parentElt = this.wordElement.parentElement;
+        document.body.appendChild(mirror);
 
         this.wordElement.style.visibility ="hidden";
+        if(parentElt.style.display=="none"){
+            parentElt.style.display="inline";
+        }
         
         // console.log(this.wordElement.getBoundingClientRect(),"Word rect");
         // console.log(this.mirrorElement.getBoundingClientRect(),"Mirror word rect");
@@ -71,7 +76,8 @@ class Word {
     unmark(){
         // this.wordElement.classList.remove('fr-focus-word');
         this.wordElement.style.visibility ="";
-        this.wordElement.parentElement.removeChild(this.mirrorElement);
+        // this.wordElement.parentElement.removeChild(this.mirrorElement);
+        document.body.removeChild(this.mirrorElement);
     }
 
     scrollIntoView(){

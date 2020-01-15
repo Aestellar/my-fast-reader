@@ -11,6 +11,7 @@ class Reader {
         this.timeout;
         this.pauseCallbackBinded = this.pauseCallback.bind(this);
         this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
+        this.startWordIndex = 0;
     }
 
 
@@ -20,19 +21,18 @@ class Reader {
         DOMHelper.attachClickEventS('[data-fr-text-container]',this.selectWordCallbackBinded);
 
         TextProcessor.formatText(this.textElt);
+
+        // TextProcessor.splitToPages(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
-        console.log(wordsElementList.length,'wordsElementList');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
-        console.log(indexedWordList.length,'wordsElementList');
         this.wordList = Word.createWordList(indexedWordList);
-        console.log('WordList', this.wordList);
 
         const count = this.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
 
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
-
+        this.load();
     }
 
     getTotalCharactersCount() {
@@ -58,7 +58,7 @@ class Reader {
             index = parseInt(index);
             if (index === index) {
                 this.currentWord.unmark();
-                this.currentWord = this.wordList[index-1]||this.wordList[index];
+                this.currentWord = this.wordList[index];
                 this.currentWord.mark();
                 console.log(this.currentWord);
             }
@@ -75,7 +75,7 @@ class Reader {
 
 
     }
-// TODO Remove event binding to Play Button
+// TODO Remove event binding with Play Button
     pauseCallback(e) {
         if (this.isPlaying()) {
             console.log('Paused');
@@ -97,6 +97,7 @@ class Reader {
     pause() {
         this.playFlag = false;
         clearTimeout(this.timeout);
+        this.save();
     }
 
     play() {
@@ -165,7 +166,7 @@ class Reader {
         }
         else {
             //console.log("loop Element",loopElement,loopElement.getAttribute('data-fr-word-index'));
-            let index = loopWord.extractIndex();
+            index = loopWord.extractIndex();
             nextWord = this.wordList[index + 1];
         }
         return nextWord;
@@ -183,5 +184,15 @@ class Reader {
         console.assert(this.textElt != undefined);
     }
 
+    save(){
+        const currentIndex = this.currentWord.extractIndex();
+        StorageManager.saveLastWord(currentIndex);
+    }
+
+    load(){
+        let index = StorageManager.loadLastWord();
+        this.currentWord = this.wordList[index];
+        this.currentWord.mark();
+    }
 
 }

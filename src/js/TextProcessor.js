@@ -33,26 +33,26 @@ class TextProcessor {
 
     static countSymbols(textElt) {
         let nodeList = DOMHelper.getOrderedNodeList(textElt);
-        let count = nodeList.reduce((previousValue,currentItem )=>{
+        let count = nodeList.reduce((previousValue, currentItem) => {
             let nodeValue = currentItem.nodeValue;
-            let length=0;
-            if(nodeValue){length = nodeValue.length}
-            return previousValue+length
-            },0);
+            let length = 0;
+            if (nodeValue) { length = nodeValue.length }
+            return previousValue + length
+        }, 0);
 
         return count;
     }
 
-    static embraceWords(wordList){
-        wordList.forEach((word,i,array)=>{
-            array[i]=`<span class="fr-word"> ${word}</span>`;
+    static embraceWords(wordList) {
+        wordList.forEach((word, i, array) => {
+            array[i] = `<span class="fr-word"> ${word}</span>`;
         });
     }
-    
-    static parseWords(string){
+
+    static parseWords(string) {
         let wordList = string.split(' ');
-        wordList = wordList.filter((el)=>{
-            if(el.trim().length>0){
+        wordList = wordList.filter((el) => {
+            if (el.trim().length > 0) {
                 return true;
             }
             // console.log(wordsArr);
@@ -68,19 +68,55 @@ class TextProcessor {
         return newSpan;
     }
 
-    static formatText(textElt){
-        let nodeList = DOMHelper.getOrderedNodeList(textElt,{excludes:['CODE']});
 
-        nodeList.forEach((node)=>{
+
+
+    // static splitToPages(textElt){
+    //     let count = 0;
+    //     let page = null;
+    //     paragraphList = this.splitToParagraphs(textElt);
+    //     paragraphList.forEach((el, index)=>{
+    //         if(!page){
+    //             page = document.createElement('div');
+    //         }
+    //         let sentencesCount = el.querySelectorAll('.fr-sentence').length;
+    //         count+=sentencesCount;
+    //         page.appendChild(el);
+    //         if(count>100){
+
+    //         }
+
+    //     });
+    // }
+
+    // static splitToParagraphs(textElt){
+    //     let index = 0;
+    //     let sentencesList = Array.from(textElt.querySelectorAll('.fr-sentence'));
+    //     let parentList = sentencesList.map((el)=>{return el.parentElement});
+    //     parentList = Array.from(new Set(parentList));
+    //     // parentList.forEach()
+    //     console.log(parentList);
+    //     return parentList;
+    //     // console.log('Total pages',index);
+    // }
+
+    static formatText(textElt) {
+        let nodeList = DOMHelper.getOrderedNodeList(textElt, { excludes: ['CODE'] });
+
+        nodeList.forEach((node) => {
             let s = node.nodeValue;
-            if(s){
-                if(s!==' '&& s!=='\n'){
-                let newElt = TextProcessor.parseWords(s);
-                let parentElement = node.parentElement;
-                parentElement.replaceChild(newElt,node);             
+            if (s) {
+                if (s !== ' ' && s !== '\n' && s !== '') {
+                    let newElt = TextProcessor.parseWords(s);
+                    if (newElt.textContent.length > 0) {
+                        let parentElement = node.parentElement;
+                        parentElement.replaceChild(newElt, node);
+                    }
+
                 }
             }
         });
+        DOMHelper.hideSentences(textElt, 1000);
     }
 }
 

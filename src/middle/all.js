@@ -82,6 +82,14 @@ static getOrderedElementListByClass(containerElt, className){
     return orderedElementList;
 }
 
+static hideSentences(textElt,firstPos){
+    let sList = textElt.querySelectorAll('.fr-sentence');
+    sList.forEach((el,index)=>{
+        if(index>firstPos){
+            // el.style.display = "none";
+        }
+    });
+}
 
 static getOrderedNodeList(element,options) {
     options = options||{};
@@ -239,6 +247,7 @@ class Reader {
         this.timeout;
         this.pauseCallbackBinded = this.pauseCallback.bind(this);
         this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
+        this.startWordIndex = 0;
     }
 
 
@@ -248,19 +257,18 @@ class Reader {
         DOMHelper.attachClickEventS('[data-fr-text-container]',this.selectWordCallbackBinded);
 
         TextProcessor.formatText(this.textElt);
+
+        // TextProcessor.splitToPages(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
-        console.log(wordsElementList.length,'wordsElementList');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
-        console.log(indexedWordList.length,'wordsElementList');
         this.wordList = Word.createWordList(indexedWordList);
-        console.log('WordList', this.wordList);
 
         const count = this.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
 
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
-
+        this.load();
     }
 
     getTotalCharactersCount() {
@@ -286,7 +294,7 @@ class Reader {
             index = parseInt(index);
             if (index === index) {
                 this.currentWord.unmark();
-                this.currentWord = this.wordList[index-1]||this.wordList[index];
+                this.currentWord = this.wordList[index];
                 this.currentWord.mark();
                 console.log(this.currentWord);
             }
@@ -303,7 +311,7 @@ class Reader {
 
 
     }
-// TODO Remove event binding to Play Button
+// TODO Remove event binding with Play Button
     pauseCallback(e) {
         if (this.isPlaying()) {
             console.log('Paused');
@@ -325,6 +333,7 @@ class Reader {
     pause() {
         this.playFlag = false;
         clearTimeout(this.timeout);
+        this.save();
     }
 
     play() {
@@ -393,7 +402,7 @@ class Reader {
         }
         else {
             //console.log("loop Element",loopElement,loopElement.getAttribute('data-fr-word-index'));
-            let index = loopWord.extractIndex();
+            index = loopWord.extractIndex();
             nextWord = this.wordList[index + 1];
         }
         return nextWord;
@@ -411,6 +420,16 @@ class Reader {
         console.assert(this.textElt != undefined);
     }
 
+    save(){
+        const currentIndex = this.currentWord.extractIndex();
+        StorageManager.saveLastWord(currentIndex);
+    }
+
+    load(){
+        let index = StorageManager.loadLastWord();
+        this.currentWord = this.wordList[index];
+        this.currentWord.mark();
+    }
 
 }
 class Statistics {
@@ -510,6 +529,27 @@ class Statistics {
 
     formatTime(time){
         
+    }
+
+}
+class StorageManager{
+
+    static loadLastWord(){
+        let path = window.location.pathname;
+        let lastWordIndex = window.localStorage.getItem(path);
+        if (lastWordIndex){
+            return lastWordIndex;
+        }
+        return 0;
+    }
+
+    // static putLastWord(wordIndex){
+
+    // }
+
+    static saveLastWord(wordIndex){
+        let path = window.location.pathname;
+        window.localStorage.setItem(path,wordIndex);
     }
 
 }
@@ -614,26 +654,26 @@ class TextProcessor {
 
     static countSymbols(textElt) {
         let nodeList = DOMHelper.getOrderedNodeList(textElt);
-        let count = nodeList.reduce((previousValue,currentItem )=>{
+        let count = nodeList.reduce((previousValue, currentItem) => {
             let nodeValue = currentItem.nodeValue;
-            let length=0;
-            if(nodeValue){length = nodeValue.length}
-            return previousValue+length
-            },0);
+            let length = 0;
+            if (nodeValue) { length = nodeValue.length }
+            return previousValue + length
+        }, 0);
 
         return count;
     }
 
-    static embraceWords(wordList){
-        wordList.forEach((word,i,array)=>{
-            array[i]=`<span class="fr-word"> ${word}</span>`;
+    static embraceWords(wordList) {
+        wordList.forEach((word, i, array) => {
+            array[i] = `<span class="fr-word"> ${word}</span>`;
         });
     }
-    
-    static parseWords(string){
+
+    static parseWords(string) {
         let wordList = string.split(' ');
-        wordList = wordList.filter((el)=>{
-            if(el.trim().length>0){
+        wordList = wordList.filter((el) => {
+            if (el.trim().length > 0) {
                 return true;
             }
             // console.log(wordsArr);
@@ -649,19 +689,55 @@ class TextProcessor {
         return newSpan;
     }
 
-    static formatText(textElt){
-        let nodeList = DOMHelper.getOrderedNodeList(textElt,{excludes:['CODE']});
 
-        nodeList.forEach((node)=>{
+
+
+    // static splitToPages(textElt){
+    //     let count = 0;
+    //     let page = null;
+    //     paragraphList = this.splitToParagraphs(textElt);
+    //     paragraphList.forEach((el, index)=>{
+    //         if(!page){
+    //             page = document.createElement('div');
+    //         }
+    //         let sentencesCount = el.querySelectorAll('.fr-sentence').length;
+    //         count+=sentencesCount;
+    //         page.appendChild(el);
+    //         if(count>100){
+
+    //         }
+
+    //     });
+    // }
+
+    // static splitToParagraphs(textElt){
+    //     let index = 0;
+    //     let sentencesList = Array.from(textElt.querySelectorAll('.fr-sentence'));
+    //     let parentList = sentencesList.map((el)=>{return el.parentElement});
+    //     parentList = Array.from(new Set(parentList));
+    //     // parentList.forEach()
+    //     console.log(parentList);
+    //     return parentList;
+    //     // console.log('Total pages',index);
+    // }
+
+    static formatText(textElt) {
+        let nodeList = DOMHelper.getOrderedNodeList(textElt, { excludes: ['CODE'] });
+
+        nodeList.forEach((node) => {
             let s = node.nodeValue;
-            if(s){
-                if(s!==' '&& s!=='\n'){
-                let newElt = TextProcessor.parseWords(s);
-                let parentElement = node.parentElement;
-                parentElement.replaceChild(newElt,node);             
+            if (s) {
+                if (s !== ' ' && s !== '\n' && s !== '') {
+                    let newElt = TextProcessor.parseWords(s);
+                    if (newElt.textContent.length > 0) {
+                        let parentElement = node.parentElement;
+                        parentElement.replaceChild(newElt, node);
+                    }
+
                 }
             }
         });
+        DOMHelper.hideSentences(textElt, 1000);
     }
 }
 
@@ -879,9 +955,14 @@ class Word {
         mirror.style.zIndex = 120000;
         // this.wordElement.classList.add('fr-focus-word');
         mirror.classList.add('fr-focus-word');
-        this.wordElement.parentElement.appendChild(mirror);
+        mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
+        const parentElt = this.wordElement.parentElement;
+        document.body.appendChild(mirror);
 
         this.wordElement.style.visibility ="hidden";
+        if(parentElt.style.display=="none"){
+            parentElt.style.display="inline";
+        }
         
         // console.log(this.wordElement.getBoundingClientRect(),"Word rect");
         // console.log(this.mirrorElement.getBoundingClientRect(),"Mirror word rect");
@@ -891,7 +972,8 @@ class Word {
     unmark(){
         // this.wordElement.classList.remove('fr-focus-word');
         this.wordElement.style.visibility ="";
-        this.wordElement.parentElement.removeChild(this.mirrorElement);
+        // this.wordElement.parentElement.removeChild(this.mirrorElement);
+        document.body.removeChild(this.mirrorElement);
     }
 
     scrollIntoView(){

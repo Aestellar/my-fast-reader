@@ -79,6 +79,14 @@ static getOrderedElementListByClass(containerElt, className){
     return orderedElementList;
 }
 
+static hideSentences(textElt,firstPos){
+    let sList = textElt.querySelectorAll('.fr-sentence');
+    sList.forEach((el,index)=>{
+        if(index>firstPos){
+            // el.style.display = "none";
+        }
+    });
+}
 
 static getOrderedNodeList(element,options) {
     options = options||{};
