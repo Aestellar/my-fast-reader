@@ -33,7 +33,7 @@ class Reader {
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
-
+//TODO Chapters
         let chapters = document.querySelectorAll('.fr-chapter');
         console.log(chapters);
 

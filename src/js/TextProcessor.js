@@ -71,40 +71,6 @@ class TextProcessor {
         return newSpan;
     }
 
-    static splitByChapters(textElt){
-
-    }
-
-
-    // static splitToPages(textElt){
-    //     let count = 0;
-    //     let page = null;
-    //     paragraphList = this.splitToParagraphs(textElt);
-    //     paragraphList.forEach((el, index)=>{
-    //         if(!page){
-    //             page = document.createElement('div');
-    //         }
-    //         let sentencesCount = el.querySelectorAll('.fr-sentence').length;
-    //         count+=sentencesCount;
-    //         page.appendChild(el);
-    //         if(count>100){
-
-    //         }
-
-    //     });
-    // }
-
-    // static splitToParagraphs(textElt){
-    //     let index = 0;
-    //     let sentencesList = Array.from(textElt.querySelectorAll('.fr-sentence'));
-    //     let parentList = sentencesList.map((el)=>{return el.parentElement});
-    //     parentList = Array.from(new Set(parentList));
-    //     // parentList.forEach()
-    //     console.log(parentList);
-    //     return parentList;
-    //     // console.log('Total pages',index);
-    // }
-
     static formatText(textElt) {
         let nodeList = DOMHelper.getOrderedNodeList(textElt, { excludes: ['CODE'] });
 
@@ -121,7 +87,6 @@ class TextProcessor {
                 }
             }
         });
-        DOMHelper.hideSentences(textElt, 1000);
     }
 }
 
