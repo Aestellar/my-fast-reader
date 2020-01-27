@@ -38,7 +38,7 @@ class ViewManager{
     }
 
     start(textElement){
-        this.hidePage();
+        DOMHelper.hidePage();
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
@@ -55,8 +55,7 @@ class ViewManager{
     clean(){
         this.reader.clean();       
         DOMHelper.removeFRElements();
-
-        this.showPage();
+        DOMHelper.showPage();
     }
 
     showReadingScreen(){
@@ -68,24 +67,6 @@ class ViewManager{
         let textContainer = this.mainContainerElt.querySelector('[data-fr-text-container]');
 
         textContainer.appendChild(textElt);
-    }
-
-
-// Вынести в DOMHelper
-    showPage(){
-        let list = document.body.children;
-        list = Array.from(list);
-        list.forEach(l=>{
-            l.classList.remove("no_scroll_hide");
-        });
-    }
- 
-    hidePage(){
-        let list = document.body.children;
-        list = Array.from(list);
-        list.forEach(l=>{
-            l.classList.add("no_scroll_hide");
-        });
     }
 
 }

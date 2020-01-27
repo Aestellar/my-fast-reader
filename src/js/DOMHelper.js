@@ -41,6 +41,23 @@ class DOMHelper {
 
     }
 
+    static showPage(){
+        let list = document.body.children;
+        list = Array.from(list);
+        list.forEach(l=>{
+            l.classList.remove("no_scroll_hide");
+        });
+    }
+ 
+    static hidePage(){
+        let list = document.body.children;
+        list = Array.from(list);
+        list.forEach(l=>{
+            l.classList.add("no_scroll_hide");
+        });
+    }
+
+
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
         return DOMHelper.isInViewportRect(bounding);
