@@ -45,38 +45,37 @@ class Word {
     }
 
     mark(){
-        let mirror = this.wordElement.cloneNode(true);
-        this.mirrorElement = mirror;
-        console.assert(!!mirror,"Mirror element must be not null");
-
-  
         let rect = this.wordElement.getBoundingClientRect();
         this.boundingRect = rect;
+        this.createMirrorElement();
+        this.wordElement.style.visibility ="hidden";  
+        this.scrollIntoView();
+        // const parentElt = this.wordElement.parentElement;
+
+
+        // if(parentElt.style.display=="none"){
+        //     parentElt.style.display="inline";
+        // }
+    }
+
+    createMirrorElement(){
+         let mirror = this.wordElement.cloneNode(true);
+        this.mirrorElement = mirror;
+        console.assert(!!mirror,"Mirror element must be not null");       
         mirror.style.position = "absolute";
-        //Fix this fix
-        mirror.style.top = rect.top + window.scrollY +'px';
-        mirror.style.left = rect.left + window.scrollX +'px';
+
+        mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
+        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
         mirror.style.zIndex = 120000;
-        // this.wordElement.classList.add('fr-focus-word');
+        mirror.style.background = "#EEE";
         mirror.classList.add('fr-focus-word');
         mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
-        const parentElt = this.wordElement.parentElement;
-        document.body.appendChild(mirror);
-
-        this.wordElement.style.visibility ="hidden";
-        if(parentElt.style.display=="none"){
-            parentElt.style.display="inline";
-        }
         
-        // console.log(this.wordElement.getBoundingClientRect(),"Word rect");
-        // console.log(this.mirrorElement.getBoundingClientRect(),"Mirror word rect");
-        // console.log(window.screenX, window.screenY, 'window scrools');
+        document.body.appendChild(mirror);
     }
 
     unmark(){
-        // this.wordElement.classList.remove('fr-focus-word');
         this.wordElement.style.visibility ="";
-        // this.wordElement.parentElement.removeChild(this.mirrorElement);
         document.body.removeChild(this.mirrorElement);
     }
 
@@ -84,7 +83,7 @@ class Word {
         let inView = DOMHelper.isInViewportRect(this.boundingRect);
         if(!inView){
             //console.log('scroll');
-            this.wordElement.scrollIntoViewIfNeeded();
+            this.wordElement.scrollIntoView();
         }
 
     }

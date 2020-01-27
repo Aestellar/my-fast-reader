@@ -64,11 +64,16 @@ class TextProcessor {
         let newString = wordList.join(' ');
         let newSpan = document.createElement("span");
         newSpan.classList.add('fr-sentence');
+        if(newString.search("Глава")!=-1){
+            newSpan.classList.add('fr-chapter');
+        }
         newSpan.innerHTML = newString;
         return newSpan;
     }
 
+    static splitByChapters(textElt){
 
+    }
 
 
     // static splitToPages(textElt){

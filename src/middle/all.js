@@ -44,6 +44,23 @@ class DOMHelper {
 
     }
 
+    static showPage(){
+        let list = document.body.children;
+        list = Array.from(list);
+        list.forEach(l=>{
+            l.classList.remove("no_scroll_hide");
+        });
+    }
+ 
+    static hidePage(){
+        let list = document.body.children;
+        list = Array.from(list);
+        list.forEach(l=>{
+            l.classList.add("no_scroll_hide");
+        });
+    }
+
+
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
         return DOMHelper.isInViewportRect(bounding);
@@ -269,6 +286,10 @@ class Reader {
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
+
+        let chapters = document.querySelectorAll('.fr-chapter');
+        console.log(chapters);
+
     }
 
     getTotalCharactersCount() {
@@ -387,7 +408,6 @@ class Reader {
         }
         else {
             loopWord.mark();
-            loopWord.scrollIntoView();
             this.updateRemainigTimeStatistics(loopWord.getNextLength());
             // console.log(loopWord);
             this.updatePlaying();
@@ -469,7 +489,9 @@ class Statistics {
         let remainingTimeElt = this.statElt.querySelector('[fr-time-to-read-remaining]')
         let remainingTime = this.remainingSymbols*60/this.speed;
         remainingTimeElt.innerHTML = 'Remaining time:'+this.getFormattedTime(remainingTime);
-
+        
+        let totalCharactersCountElt = this.statElt.querySelector('[fr-total-characters-count]');
+        totalCharactersCountElt.innerHTML = "Total characters: "+this.symbolsCount;
         //return this.statElt;
     }
 
@@ -685,11 +707,16 @@ class TextProcessor {
         let newString = wordList.join(' ');
         let newSpan = document.createElement("span");
         newSpan.classList.add('fr-sentence');
+        if(newString.search("Глава")!=-1){
+            newSpan.classList.add('fr-chapter');
+        }
         newSpan.innerHTML = newString;
         return newSpan;
     }
 
+    static splitByChapters(textElt){
 
+    }
 
 
     // static splitToPages(textElt){
@@ -783,8 +810,12 @@ class ViewCreator{
 
         let timeToReadTotal = DOMHelper.createElement('div','fr-time-to-read-total','fr-time-to-read-total');
         statistics.appendChild(timeToReadTotal);
+
         let timeToReadRemaiming = DOMHelper.createElement('div','fr-time-to-read-remaining','fr-time-to-read-remaining','Remaining time');
         statistics.appendChild(timeToReadRemaiming);
+
+        let totalCharatersCount = DOMHelper.createElement('div','fr-total-characters-count','fr-total-characters-count','Total characters: 00');
+        statistics.appendChild(totalCharatersCount);
 
         let exitBtn = DOMHelper.createElement("button","fr-exit-btn","data-fr-exitBtn","exit");
         menu.appendChild(exitBtn);
@@ -843,7 +874,7 @@ class ViewManager{
     }
 
     start(textElement){
-        this.hidePage();
+        DOMHelper.hidePage();
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
@@ -860,8 +891,7 @@ class ViewManager{
     clean(){
         this.reader.clean();       
         DOMHelper.removeFRElements();
-
-        this.showPage();
+        DOMHelper.showPage();
     }
 
     showReadingScreen(){
@@ -873,24 +903,6 @@ class ViewManager{
         let textContainer = this.mainContainerElt.querySelector('[data-fr-text-container]');
 
         textContainer.appendChild(textElt);
-    }
-
-
-// Вынести в DOMHelper
-    showPage(){
-        let list = document.body.children;
-        list = Array.from(list);
-        list.forEach(l=>{
-            l.classList.remove("no_scroll_hide");
-        });
-    }
- 
-    hidePage(){
-        let list = document.body.children;
-        list = Array.from(list);
-        list.forEach(l=>{
-            l.classList.add("no_scroll_hide");
-        });
     }
 
 }
@@ -941,38 +953,37 @@ class Word {
     }
 
     mark(){
-        let mirror = this.wordElement.cloneNode(true);
-        this.mirrorElement = mirror;
-        console.assert(!!mirror,"Mirror element must be not null");
-
-  
         let rect = this.wordElement.getBoundingClientRect();
         this.boundingRect = rect;
+        this.createMirrorElement();
+        this.wordElement.style.visibility ="hidden";  
+        this.scrollIntoView();
+        // const parentElt = this.wordElement.parentElement;
+
+
+        // if(parentElt.style.display=="none"){
+        //     parentElt.style.display="inline";
+        // }
+    }
+
+    createMirrorElement(){
+         let mirror = this.wordElement.cloneNode(true);
+        this.mirrorElement = mirror;
+        console.assert(!!mirror,"Mirror element must be not null");       
         mirror.style.position = "absolute";
-        //Fix this fix
-        mirror.style.top = rect.top + window.scrollY +'px';
-        mirror.style.left = rect.left + window.scrollX +'px';
+
+        mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
+        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
         mirror.style.zIndex = 120000;
-        // this.wordElement.classList.add('fr-focus-word');
+        mirror.style.background = "#EEE";
         mirror.classList.add('fr-focus-word');
         mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
-        const parentElt = this.wordElement.parentElement;
-        document.body.appendChild(mirror);
-
-        this.wordElement.style.visibility ="hidden";
-        if(parentElt.style.display=="none"){
-            parentElt.style.display="inline";
-        }
         
-        // console.log(this.wordElement.getBoundingClientRect(),"Word rect");
-        // console.log(this.mirrorElement.getBoundingClientRect(),"Mirror word rect");
-        // console.log(window.screenX, window.screenY, 'window scrools');
+        document.body.appendChild(mirror);
     }
 
     unmark(){
-        // this.wordElement.classList.remove('fr-focus-word');
         this.wordElement.style.visibility ="";
-        // this.wordElement.parentElement.removeChild(this.mirrorElement);
         document.body.removeChild(this.mirrorElement);
     }
 
@@ -980,7 +991,7 @@ class Word {
         let inView = DOMHelper.isInViewportRect(this.boundingRect);
         if(!inView){
             //console.log('scroll');
-            this.wordElement.scrollIntoViewIfNeeded();
+            this.wordElement.scrollIntoView();
         }
 
     }

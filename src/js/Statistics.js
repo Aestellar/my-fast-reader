@@ -35,7 +35,9 @@ class Statistics {
         let remainingTimeElt = this.statElt.querySelector('[fr-time-to-read-remaining]')
         let remainingTime = this.remainingSymbols*60/this.speed;
         remainingTimeElt.innerHTML = 'Remaining time:'+this.getFormattedTime(remainingTime);
-
+        
+        let totalCharactersCountElt = this.statElt.querySelector('[fr-total-characters-count]');
+        totalCharactersCountElt.innerHTML = "Total characters: "+this.symbolsCount;
         //return this.statElt;
     }
 

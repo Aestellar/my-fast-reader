@@ -39,8 +39,12 @@ class ViewCreator{
 
         let timeToReadTotal = DOMHelper.createElement('div','fr-time-to-read-total','fr-time-to-read-total');
         statistics.appendChild(timeToReadTotal);
+
         let timeToReadRemaiming = DOMHelper.createElement('div','fr-time-to-read-remaining','fr-time-to-read-remaining','Remaining time');
         statistics.appendChild(timeToReadRemaiming);
+
+        let totalCharatersCount = DOMHelper.createElement('div','fr-total-characters-count','fr-total-characters-count','Total characters: 00');
+        statistics.appendChild(totalCharatersCount);
 
         let exitBtn = DOMHelper.createElement("button","fr-exit-btn","data-fr-exitBtn","exit");
         menu.appendChild(exitBtn);

@@ -33,6 +33,10 @@ class Reader {
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
+
+        let chapters = document.querySelectorAll('.fr-chapter');
+        console.log(chapters);
+
     }
 
     getTotalCharactersCount() {
@@ -151,7 +155,6 @@ class Reader {
         }
         else {
             loopWord.mark();
-            loopWord.scrollIntoView();
             this.updateRemainigTimeStatistics(loopWord.getNextLength());
             // console.log(loopWord);
             this.updatePlaying();
