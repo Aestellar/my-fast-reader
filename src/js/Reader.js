@@ -72,7 +72,7 @@ class Reader {
     spaceCallbackFunction(e) {
         console.log('Pressed key:' + e.key);
 
-        if (e.key === " ") {
+        if (e.key === "Control") {
             this.playBtn.click();
             e.preventDefault();
         }

@@ -8,23 +8,23 @@ class ViewManager{
         this.reader;
     }
 
-    createView(){
+    createView(quickStart){
         const mainContainerElt = this.vc.createMainContainer();
         this.mainContainerElt = mainContainerElt;
         
-        this.attachEventListeners(this.controller);
+        this.attachEventListeners();
         this.createStatBlock();
-        this.controller.launch();
+        this.controller.launch(quickStart);
 
          console.log('View created');
 
     }
 
-    attachEventListeners(cntr){
+    attachEventListeners(){
         const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
         console.log(this.mainContainerElt);
-        exitBtn.addEventListener('click',cntr.getClickExitCallback());
-        document.addEventListener('keydown',cntr.getEscapeExitCallback());
+        exitBtn.addEventListener('click',this.controller.getClickExitCallback());
+        document.addEventListener('keydown',this.controller.getEscapeExitCallback());
     }
 
     createStatBlock(){
@@ -38,6 +38,7 @@ class ViewManager{
     }
 
     start(textElement){
+        DOMHelper.activeFlag = true;
         DOMHelper.hidePage();
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
@@ -53,6 +54,10 @@ class ViewManager{
 
 
     clean(){
+        DOMHelper.activeFlag = false;
+        const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
+        exitBtn.removeEventListener('click',this.controller.getClickExitCallback());
+        document.removeEventListener('keydown',this.controller.getEscapeExitCallback());
         this.reader.clean();       
         DOMHelper.removeFRElements();
         DOMHelper.showPage();

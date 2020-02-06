@@ -16,7 +16,7 @@
 (function() {
     'use strict';
 class Constants{
-    static get SPEED (){ return 3600}; 
+    static get SPEED (){ return 4000}; 
 }
 class DOMHelper {
 
@@ -24,6 +24,11 @@ class DOMHelper {
         FRAttribute:"data-fast-reader-attribute"
     };
 
+    static activeFlag = false;
+
+    static isActive(){
+        return this.activeFlag;
+    }
 
     static createFRElement(type, className, selfName, text) {
         let el = this.createElement(type, className, selfName, text);
@@ -68,7 +73,7 @@ class DOMHelper {
             l.classList.remove("no_scroll_hide");
         });
     }
- 
+
     static hidePage(){
         let list = document.body.children;
         list = Array.from(list);
@@ -76,6 +81,32 @@ class DOMHelper {
             l.classList.add("no_scroll_hide");
         });
     }
+
+
+    static cssPath (el) {
+        if (!(el instanceof Element)) 
+            return;
+        var path = [];
+        while (el.nodeType === Node.ELEMENT_NODE) {
+            var selector = el.nodeName.toLowerCase();
+            if (el.id) {
+                selector += '#' + el.id;
+                path.unshift(selector);
+                break;
+            } else {
+                var sib = el, nth = 1;
+                while (sib = sib.previousElementSibling) {
+                    if (sib.nodeName.toLowerCase() == selector)
+                       nth++;
+                }
+                if (nth != 1)
+                    selector += ":nth-of-type("+nth+")";
+            }
+            path.unshift(selector);
+            el = el.parentNode;
+        }
+        return path.join(" > ");
+     }
 
 
     static isInViewport = function (elem) {
@@ -117,14 +148,15 @@ static getOrderedElementListByClass(containerElt, className){
 }
 
 static hideSentences(textElt,firstPos){
-    let sList = textElt.querySelectorAll('.fr-sentence');
-    sList.forEach((el,index)=>{
-        if(index>firstPos){
-            // el.style.display = "none";
-        }
-    });
+    // let sList = textElt.querySelectorAll('.fr-sentence');
+    // sList.forEach((el,index)=>{
+    //     if(index>firstPos){
+    //         // el.style.display = "none";
+    //     }
+    // });
 }
 
+//Walk in depth
 static getOrderedNodeList(element,options) {
     options = options||{};
     const excludesList = options.excludes||[];
@@ -181,10 +213,10 @@ static getOrderedNodeList(element,options) {
 class FastReaderMain{
 
 
-    static launch(event){
+    static launch(event, quickStart){
         event.stopPropagation();
         let vm = new ViewManager();
-        vm.createView();
+        vm.createView(quickStart);
         console.log('static launch');
         // document.removeEventListener('click',FastReaderMain.launch);
     }
@@ -196,7 +228,19 @@ class FastReaderMain{
         let launchBtn = viewCreator.createLaunchButton(FastReaderMain.launch);
         document.body.appendChild(launchBtn);
         FastReaderMain.expandStringPrototype();
+        FastReaderMain.addMainListeners();
+        }
+
+    static addMainListeners(){
+        document.addEventListener('keydown',(e)=>{
+            if(e.code=='KeyQ'){
+                if(!DOMHelper.isActive()){
+                    FastReaderMain.launch(e, true);
+                }
+            }
+        });
     }
+
 
     static expandStringPrototype(){
         String.prototype.toHHMMSS = function () {
@@ -227,23 +271,35 @@ class FRController{
 
     constructor(viewManager){
         this.vm = viewManager;
+        this.launchReadingMode = this.launchReadingMode.bind(this);
+        this.exitReadingMode = this.exitReadingMode.bind(this);
+        this.onEscape = this.onEscape.bind(this);
     }
 
     getClickExitCallback(){
-        return this.exitReadingMode.bind(this);
+        return this.exitReadingMode;
     }
 
     getEscapeExitCallback(){
-        return this.onEscape.bind(this);
+        return this.onEscape;
     }
 
      getlaunchCallback(){
         return this.launch;
     }
 
-     launch(){
+     launch(quickStart){
         console.log("Reading mode enabled");
-        TextPicker.pickTextFromPage(this.launchReadingMode.bind(this));
+        if(quickStart){
+            let el = document.querySelector(StorageManager.loadDefaultSelector()); 
+            if(el){
+                this.launchReadingMode(el);
+            }
+        }
+        else{
+            TextPicker.pickTextFromPage(this.launchReadingMode);            
+        }
+
     }
 
      launchReadingMode(el){
@@ -255,7 +311,6 @@ class FRController{
      exitReadingMode(){
         console.log('exit reading mode');
         this.vm.clean();
-        this.vm.showPage();
     }
 
      onEscape(e){
@@ -303,7 +358,7 @@ class Reader {
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
-
+//TODO Chapters
         let chapters = document.querySelectorAll('.fr-chapter');
         console.log(chapters);
 
@@ -342,7 +397,7 @@ class Reader {
     spaceCallbackFunction(e) {
         console.log('Pressed key:' + e.key);
 
-        if (e.key === " ") {
+        if (e.key === "Control") {
             this.playBtn.click();
             e.preventDefault();
         }
@@ -573,6 +628,7 @@ class Statistics {
 }
 class StorageManager{
 
+    static defaultSelectorName = "FR-default-selector";
     static loadLastWord(){
         let path = window.location.pathname;
         let lastWordIndex = window.localStorage.getItem(path);
@@ -589,6 +645,15 @@ class StorageManager{
     static saveLastWord(wordIndex){
         let path = window.location.pathname;
         window.localStorage.setItem(path,wordIndex);
+    }
+
+    static saveDefaultSelector(selector){
+        window.localStorage.setItem(StorageManager.defaultSelectorName,selector);
+    }
+
+    static loadDefaultSelector(){
+        return window.localStorage.getItem(StorageManager.defaultSelectorName);
+
     }
 
 }
@@ -637,8 +702,11 @@ static readingModecallback;
         //console.log("click",e.target,el,el1);
         // el1.classList.remove('no_scroll_hide');
         console.log("Selected text element",el1);
+        const selector = DOMHelper.cssPath(el1);
+
 
         if(validSelection){
+            StorageManager.saveDefaultSelector(selector);
             TextPicker.readingModecallback(el1);
         }
 
@@ -731,40 +799,6 @@ class TextProcessor {
         return newSpan;
     }
 
-    static splitByChapters(textElt){
-
-    }
-
-
-    // static splitToPages(textElt){
-    //     let count = 0;
-    //     let page = null;
-    //     paragraphList = this.splitToParagraphs(textElt);
-    //     paragraphList.forEach((el, index)=>{
-    //         if(!page){
-    //             page = document.createElement('div');
-    //         }
-    //         let sentencesCount = el.querySelectorAll('.fr-sentence').length;
-    //         count+=sentencesCount;
-    //         page.appendChild(el);
-    //         if(count>100){
-
-    //         }
-
-    //     });
-    // }
-
-    // static splitToParagraphs(textElt){
-    //     let index = 0;
-    //     let sentencesList = Array.from(textElt.querySelectorAll('.fr-sentence'));
-    //     let parentList = sentencesList.map((el)=>{return el.parentElement});
-    //     parentList = Array.from(new Set(parentList));
-    //     // parentList.forEach()
-    //     console.log(parentList);
-    //     return parentList;
-    //     // console.log('Total pages',index);
-    // }
-
     static formatText(textElt) {
         let nodeList = DOMHelper.getOrderedNodeList(textElt, { excludes: ['CODE'] });
 
@@ -781,7 +815,6 @@ class TextProcessor {
                 }
             }
         });
-        DOMHelper.hideSentences(textElt, 1000);
     }
 }
 
@@ -861,23 +894,23 @@ class ViewManager{
         this.reader;
     }
 
-    createView(){
+    createView(quickStart){
         const mainContainerElt = this.vc.createMainContainer();
         this.mainContainerElt = mainContainerElt;
         
-        this.attachEventListeners(this.controller);
+        this.attachEventListeners();
         this.createStatBlock();
-        this.controller.launch();
+        this.controller.launch(quickStart);
 
          console.log('View created');
 
     }
 
-    attachEventListeners(cntr){
+    attachEventListeners(){
         const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
         console.log(this.mainContainerElt);
-        exitBtn.addEventListener('click',cntr.getClickExitCallback());
-        document.addEventListener('keydown',cntr.getEscapeExitCallback());
+        exitBtn.addEventListener('click',this.controller.getClickExitCallback());
+        document.addEventListener('keydown',this.controller.getEscapeExitCallback());
     }
 
     createStatBlock(){
@@ -891,6 +924,7 @@ class ViewManager{
     }
 
     start(textElement){
+        DOMHelper.activeFlag = true;
         DOMHelper.hidePage();
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
@@ -906,6 +940,10 @@ class ViewManager{
 
 
     clean(){
+        DOMHelper.activeFlag = false;
+        const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
+        exitBtn.removeEventListener('click',this.controller.getClickExitCallback());
+        document.removeEventListener('keydown',this.controller.getEscapeExitCallback());
         this.reader.clean();       
         DOMHelper.removeFRElements();
         DOMHelper.showPage();
@@ -973,30 +1011,24 @@ class Word {
         let rect = this.wordElement.getBoundingClientRect();
         this.boundingRect = rect;
         this.createMirrorElement();
+        this.mirrorElement = this.createMirrorElement();
+        document.body.appendChild(this.mirrorElement);
         this.wordElement.style.visibility ="hidden";  
         this.scrollIntoView();
-        // const parentElt = this.wordElement.parentElement;
-
-
-        // if(parentElt.style.display=="none"){
-        //     parentElt.style.display="inline";
-        // }
     }
 
     createMirrorElement(){
-         let mirror = this.wordElement.cloneNode(true);
-        this.mirrorElement = mirror;
-        console.assert(!!mirror,"Mirror element must be not null");       
+        let mirror = this.wordElement.cloneNode(true);
+        // this.mirrorElement = mirror;
+        console.assert(!!mirror,"Mirror element must be not null");   
         mirror.style.position = "absolute";
-
         mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
         mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
         mirror.style.zIndex = 120000;
         mirror.style.background = "#EEE";
         mirror.classList.add('fr-focus-word');
         mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
-        
-        document.body.appendChild(mirror);
+        return mirror;
     }
 
     unmark(){
@@ -1008,7 +1040,7 @@ class Word {
         let inView = DOMHelper.isInViewportRect(this.boundingRect);
         if(!inView){
             //console.log('scroll');
-            this.wordElement.scrollIntoView();
+            this.wordElement.scrollIntoViewIfNeeded();
         }
 
     }
@@ -1099,7 +1131,7 @@ var styleCSS = `.launch_button{
     .fr-menu-container{
     position:fixed;
     top: 0;
-    height:50px;
+    min-height: 50px;
     width:100%;
     background:#c4c4c4;
     }
@@ -1109,23 +1141,38 @@ var styleCSS = `.launch_button{
     margin-right: auto;
     }
 
+    .fr-menu button{
+        height: 100%;
+        vertical-align: top;
+    }
+
     .fr-speed-block{
         display: inline-block;
+        vertical-align: top;
     }
 
     .fr-speed-counter{
     display:inline-block;
+    vertical-align: top;
     /* width:300px; */
     }
 
 
     .fr-statistics{
     display:inline-block;
-    width:250px;
+    /* width:250px; */
     }
+    /* .fr-pause-button{
+        vertical-align: top;
+        height: 100%;
+    } */
+
     .fr-words-per-selection{
         display: inline-block;
     }
+
+
+
 
     .fr-sentence{
         color:gray; 

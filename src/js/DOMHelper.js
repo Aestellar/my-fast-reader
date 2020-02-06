@@ -4,6 +4,11 @@ class DOMHelper {
         FRAttribute:"data-fast-reader-attribute"
     };
 
+    static activeFlag = false;
+
+    static isActive(){
+        return this.activeFlag;
+    }
 
     static createFRElement(type, className, selfName, text) {
         let el = this.createElement(type, className, selfName, text);
@@ -48,7 +53,7 @@ class DOMHelper {
             l.classList.remove("no_scroll_hide");
         });
     }
- 
+
     static hidePage(){
         let list = document.body.children;
         list = Array.from(list);
@@ -56,6 +61,32 @@ class DOMHelper {
             l.classList.add("no_scroll_hide");
         });
     }
+
+
+    static cssPath (el) {
+        if (!(el instanceof Element)) 
+            return;
+        var path = [];
+        while (el.nodeType === Node.ELEMENT_NODE) {
+            var selector = el.nodeName.toLowerCase();
+            if (el.id) {
+                selector += '#' + el.id;
+                path.unshift(selector);
+                break;
+            } else {
+                var sib = el, nth = 1;
+                while (sib = sib.previousElementSibling) {
+                    if (sib.nodeName.toLowerCase() == selector)
+                       nth++;
+                }
+                if (nth != 1)
+                    selector += ":nth-of-type("+nth+")";
+            }
+            path.unshift(selector);
+            el = el.parentNode;
+        }
+        return path.join(" > ");
+     }
 
 
     static isInViewport = function (elem) {
@@ -97,14 +128,15 @@ static getOrderedElementListByClass(containerElt, className){
 }
 
 static hideSentences(textElt,firstPos){
-    let sList = textElt.querySelectorAll('.fr-sentence');
-    sList.forEach((el,index)=>{
-        if(index>firstPos){
-            // el.style.display = "none";
-        }
-    });
+    // let sList = textElt.querySelectorAll('.fr-sentence');
+    // sList.forEach((el,index)=>{
+    //     if(index>firstPos){
+    //         // el.style.display = "none";
+    //     }
+    // });
 }
 
+//Walk in depth
 static getOrderedNodeList(element,options) {
     options = options||{};
     const excludesList = options.excludes||[];

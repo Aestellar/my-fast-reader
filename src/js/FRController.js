@@ -2,23 +2,35 @@ class FRController{
 
     constructor(viewManager){
         this.vm = viewManager;
+        this.launchReadingMode = this.launchReadingMode.bind(this);
+        this.exitReadingMode = this.exitReadingMode.bind(this);
+        this.onEscape = this.onEscape.bind(this);
     }
 
     getClickExitCallback(){
-        return this.exitReadingMode.bind(this);
+        return this.exitReadingMode;
     }
 
     getEscapeExitCallback(){
-        return this.onEscape.bind(this);
+        return this.onEscape;
     }
 
      getlaunchCallback(){
         return this.launch;
     }
 
-     launch(){
+     launch(quickStart){
         console.log("Reading mode enabled");
-        TextPicker.pickTextFromPage(this.launchReadingMode.bind(this));
+        if(quickStart){
+            let el = document.querySelector(StorageManager.loadDefaultSelector()); 
+            if(el){
+                this.launchReadingMode(el);
+            }
+        }
+        else{
+            TextPicker.pickTextFromPage(this.launchReadingMode);            
+        }
+
     }
 
      launchReadingMode(el){
@@ -30,7 +42,6 @@ class FRController{
      exitReadingMode(){
         console.log('exit reading mode');
         this.vm.clean();
-        this.vm.showPage();
     }
 
      onEscape(e){

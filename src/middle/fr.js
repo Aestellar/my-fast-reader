@@ -45,7 +45,7 @@ var styleCSS = `.launch_button{
     .fr-menu-container{
     position:fixed;
     top: 0;
-    height:50px;
+    min-height: 50px;
     width:100%;
     background:#c4c4c4;
     }
@@ -55,23 +55,38 @@ var styleCSS = `.launch_button{
     margin-right: auto;
     }
 
+    .fr-menu button{
+        height: 100%;
+        vertical-align: top;
+    }
+
     .fr-speed-block{
         display: inline-block;
+        vertical-align: top;
     }
 
     .fr-speed-counter{
     display:inline-block;
+    vertical-align: top;
     /* width:300px; */
     }
 
 
     .fr-statistics{
     display:inline-block;
-    width:250px;
+    /* width:250px; */
     }
+    /* .fr-pause-button{
+        vertical-align: top;
+        height: 100%;
+    } */
+
     .fr-words-per-selection{
         display: inline-block;
     }
+
+
+
 
     .fr-sentence{
         color:gray; 

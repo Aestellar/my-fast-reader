@@ -43,8 +43,11 @@ static readingModecallback;
         //console.log("click",e.target,el,el1);
         // el1.classList.remove('no_scroll_hide');
         console.log("Selected text element",el1);
+        const selector = DOMHelper.cssPath(el1);
+
 
         if(validSelection){
+            StorageManager.saveDefaultSelector(selector);
             TextPicker.readingModecallback(el1);
         }
 

@@ -1,10 +1,10 @@
 class FastReaderMain{
 
 
-    static launch(event){
+    static launch(event, quickStart){
         event.stopPropagation();
         let vm = new ViewManager();
-        vm.createView();
+        vm.createView(quickStart);
         console.log('static launch');
         // document.removeEventListener('click',FastReaderMain.launch);
     }
@@ -16,7 +16,19 @@ class FastReaderMain{
         let launchBtn = viewCreator.createLaunchButton(FastReaderMain.launch);
         document.body.appendChild(launchBtn);
         FastReaderMain.expandStringPrototype();
+        FastReaderMain.addMainListeners();
+        }
+
+    static addMainListeners(){
+        document.addEventListener('keydown',(e)=>{
+            if(e.code=='KeyQ'){
+                if(!DOMHelper.isActive()){
+                    FastReaderMain.launch(e, true);
+                }
+            }
+        });
     }
+
 
     static expandStringPrototype(){
         String.prototype.toHHMMSS = function () {

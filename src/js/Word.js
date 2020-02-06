@@ -77,7 +77,7 @@ class Word {
         let inView = DOMHelper.isInViewportRect(this.boundingRect);
         if(!inView){
             //console.log('scroll');
-            this.wordElement.scrollIntoView();
+            this.wordElement.scrollIntoViewIfNeeded();
         }
 
     }
