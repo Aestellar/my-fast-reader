@@ -1,7 +1,6 @@
 class ViewManager{
 
-    constructor(){
-        this.vc = new ViewCreator(this.dh);        
+    constructor(){ 
         this.controller = new FRController(this);
         this.mainContainerElt;
         this.statBlock;
@@ -9,7 +8,8 @@ class ViewManager{
     }
 
     createView(quickStart){
-        const mainContainerElt = this.vc.createMainContainer();
+        let vc = new ViewCreator();  
+        const mainContainerElt = vc.createMainContainer();
         this.mainContainerElt = mainContainerElt;
         
         this.attachEventListeners();
@@ -20,6 +20,16 @@ class ViewManager{
 
     }
 
+    start(textElement){
+        DOMHelper.activeFlag = true;
+        DOMHelper.hidePage();
+        let textElt = TextProcessor.processText(textElement);
+        this.setTextElement(textElt);
+        this.showReadingScreen();
+        this.createReader();
+        this.reader.init();
+    }
+    
     attachEventListeners(){
         const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
         console.log(this.mainContainerElt);
@@ -37,15 +47,7 @@ class ViewManager{
         this.reader.test();
     }
 
-    start(textElement){
-        DOMHelper.activeFlag = true;
-        DOMHelper.hidePage();
-        let textElt = TextProcessor.processText(textElement);
-        this.setTextElement(textElt);
-        this.showReadingScreen();
-        this.createReader();
-        this.reader.init();
-    }
+
 
 
 

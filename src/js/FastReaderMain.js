@@ -21,7 +21,7 @@ class FastReaderMain{
 
     static addMainListeners(){
         document.addEventListener('keydown',(e)=>{
-            if(e.code=='KeyQ'){
+            if(e.code=='KeyQ'&&e.ctrlKey){
                 if(!DOMHelper.isActive()){
                     FastReaderMain.launch(e, true);
                 }

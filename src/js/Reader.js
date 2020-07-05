@@ -18,7 +18,7 @@ class Reader {
     init() {
         this.playBtn = document.querySelector('[data-fr-pause-button]');
         DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.attachClickEventS('[data-fr-text-container]',this.selectWordCallbackBinded);
+        DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
 
         TextProcessor.formatText(this.textElt);
 
@@ -26,16 +26,18 @@ class Reader {
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
         this.wordList = Word.createWordList(indexedWordList);
-
+        // this.chapterList = Chapter.splitWordListToChapters(this.wordList);
+        // this.chapterList = Chapter.splitEltToChapters(this.textElt, this.wordList);
+        // this.currentChapter = null;
         const count = this.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
 
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
-//TODO Chapters
-        let chapters = document.querySelectorAll('.fr-chapter');
-        console.log(chapters);
+        //TODO Chapters
+        // let chapters = document.querySelectorAll('.fr-chapter');
+        // console.log(chapters);
 
     }
 
@@ -56,8 +58,7 @@ class Reader {
 
     selectWordCallback(e) {
         let el = e.target;
-        if (el.hasAttribute('data-fr-word-index'))
-        {
+        if (el.hasAttribute('data-fr-word-index')) {
             let index = el.getAttribute('data-fr-word-index');
             index = parseInt(index);
             if (index === index) {
@@ -76,10 +77,10 @@ class Reader {
             this.playBtn.click();
             e.preventDefault();
         }
-
-
     }
-// TODO Remove event binding with Play Button
+
+
+    // TODO Remove event binding with Play Button
     pauseCallback(e) {
         if (this.isPlaying()) {
             console.log('Paused');
@@ -114,7 +115,7 @@ class Reader {
 
     clean() {
         DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.removeClickEventS('[data-fr-text-container]',this.selectWordCallbackBinded);
+        DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
         document.removeEventListener('keydown', this.spaceCallback, true);
         this.playFlag = false;
     }
@@ -148,6 +149,16 @@ class Reader {
         // let loopElement = this.currentElt;
 
         loopWord = this.nextWord(loopWord);
+
+        let wordChapterIndex = loopWord.extractChapterIndex();
+        if (!!this.currentChapter) {
+            if (this.currentChapter.getIndex() < wordChapterIndex) {
+                this.currentChapter = this.chapterList[wordChapterIndex];
+                this.currentChapter.showAllWords();
+            }
+        }
+
+
         this.currentWord = loopWord;
         if (!loopWord) {
             this.pause();
@@ -176,7 +187,14 @@ class Reader {
     }
 
     calculateSpeed() {
-        const speed = this.statistics.getSpeed(this.currentWord.getLength());
+        let speed = this.statistics.getSpeed(this.currentWord.getLength());
+        let now = Date.now();
+        let lastDate = this.lastDate ? this.lastDate : now;
+        let timeDelta = now - lastDate;
+        speed -= timeDelta;
+        if (speed < 0) {
+            speed = 0;
+        }
         // console.log("Timeout for word", this.currentWord, speed);
         return speed;
     }
@@ -187,12 +205,12 @@ class Reader {
         console.assert(this.textElt != undefined);
     }
 
-    save(){
+    save() {
         const currentIndex = this.currentWord.extractIndex();
         StorageManager.saveLastWord(currentIndex);
     }
 
-    load(){
+    load() {
         let index = StorageManager.loadLastWord();
         this.currentWord = this.wordList[index];
         this.currentWord.mark();

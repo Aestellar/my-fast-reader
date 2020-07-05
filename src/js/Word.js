@@ -4,9 +4,11 @@ class Word {
         this.wordElement = wordElement;
         this.mirrorElement;
         this.boundingRect;
+        this.displayInitial = this.wordElement.style.display;
         this.length = 0;
         this.previousLength = 0;
         this.nextLength = 0;
+        
         this.update();
     }
 
@@ -18,6 +20,19 @@ class Word {
     extractIndex(){
         const i = parseInt(this.wordElement.getAttribute('data-fr-word-index'));
         return i;
+    }
+
+    extractChapterIndex(){
+        const i = parseInt(this.wordElement.getAttribute('fr-chapter-index'));
+        return i;
+    }
+
+    hide(){
+        this.getElement().style.display = 'none';
+    }
+
+    show(){
+        this.getElement().style.display = this.displayInitial;
     }
 
     getLength() {
@@ -57,7 +72,7 @@ class Word {
     createMirrorElement(){
         let mirror = this.wordElement.cloneNode(true);
         // this.mirrorElement = mirror;
-        console.assert(!!mirror,"Mirror element must be not null");   
+        console.assert(!!mirror,"Mirror element must not be null");   
         mirror.style.position = "absolute";
         mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
         mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
