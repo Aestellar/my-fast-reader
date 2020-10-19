@@ -72,10 +72,10 @@ gulp.task('watch',()=>{
     return gulp.watch('./src/js/*.js',gulp.series('build'));
 });
 
-var userscriptHeader = `// ==UserScript==
+let userscriptHeader = `// ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.1 ${Date()}
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -90,6 +90,6 @@ var userscriptHeader = `// ==UserScript==
 (function() {
     'use strict';
 `;
-var userscriptFooter = `
+let userscriptFooter = `
 FastReaderMain.init();
 \n})();`;

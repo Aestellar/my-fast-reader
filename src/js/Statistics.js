@@ -42,15 +42,15 @@ class Statistics {
     }
 
     increaseSpeed(e){
-        let value = 10;
-        if(e.shiftKey) value = 100;
+        let value = Constants.BASESPEEDCHANGE;
+        if(e.shiftKey) value = Constants.SHIFTSPEEDCHANGE;
         this.speed+=value;
         this.updateView();
     }
 
     decreaseSpeed(e){
-        let value = 10;
-        if(e.shiftKey) value = 100;
+        let value = Constants.BASESPEEDCHANGE;
+        if(e.shiftKey) value = Constants.SHIFTSPEEDCHANGE;
         this.speed-=value;
 
         if(this.speed<0){

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.1 Mon Sep 07 2020 12:10:18 GMT+0300 (RTZ 2 (зима))
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -17,159 +17,161 @@
     'use strict';
 class Chapter{
 
-    constructor(firstTitleElement,lastTitleElement,chapterIndex){
-        this.nextChapter;
-        this.prevChapter;
-        this.firstTitleElement = firstTitleElement;
-        this.lastTitleElement = lastTitleElement;
-        this.firstTitleWordIndex = parseInt(this.firstTitleElement.getAttribute('data-fr-word-index'));
-        this.lastTitleWordIndex = parseInt(this.lastTitleElement.getAttribute('data-fr-word-index'));
-        this.lastWordIndex;
-        this.wordList = [];
-        this.chapterElt;
-        this.chapterIndex = chapterIndex;
-        this.subchapterList;
-    }
+    // constructor(firstTitleElement,lastTitleElement,chapterIndex){
+    //     this.nextChapter;
+    //     this.prevChapter;
+    //     this.firstTitleElement = firstTitleElement;
+    //     this.lastTitleElement = lastTitleElement;
+    //     this.firstTitleWordIndex = parseInt(this.firstTitleElement.getAttribute('data-fr-word-index'));
+    //     this.lastTitleWordIndex = parseInt(this.lastTitleElement.getAttribute('data-fr-word-index'));
+    //     this.lastWordIndex;
+    //     this.wordList = [];
+    //     this.chapterElt;
+    //     this.chapterIndex = chapterIndex;
+    //     this.subchapterList;
+    // }
 
-    init(){ 
-        this.markAllWord(wordList);
-        this.hideAllWords();
-    }
+    // init(){ 
+    //     this.markAllWord(wordList);
+    //     this.hideAllWords();
+    // }
 
-    getIndex(){
-        return this.chapterIndex;
-    }
+    // getIndex(){
+    //     return this.chapterIndex;
+    // }
 
-    getFirstTitleWordIndex(){
-        return this.firstTitleWordIndex;
-    }
+    // getFirstTitleWordIndex(){
+    //     return this.firstTitleWordIndex;
+    // }
 
-    getLastTitleWordIndex(){
-        return this.lastTitleWordIndex;
-    }
+    // getLastTitleWordIndex(){
+    //     return this.lastTitleWordIndex;
+    // }
 
-    getNextChapter(){
+    // getNextChapter(){
 
-    }
+    // }
 
-    getPrevChapter(){
+    // getPrevChapter(){
 
-    }
+    // }
 
-    showChapter(){
+    // showChapter(){
 
-    }
+    // }
 
-    hideChapter(){
+    // hideChapter(){
 
-    }
+    // }
 
-    nextWord(){
+    // nextWord(){
 
-    }
+    // }
 
-    setLastWordIndex(i){
-        this.lastWordIndex = i;
-    }
+    // setLastWordIndex(i){
+    //     this.lastWordIndex = i;
+    // }
 
-    getLastWordIndex(){
-        return this.lastWordIndex;
-    }
+    // getLastWordIndex(){
+    //     return this.lastWordIndex;
+    // }
 
-    isChapterWord(index){
-        return (index>=this.getFirstTitleWordIndex())&&(index<=this.getLastWordIndex());
-    }
+    // isChapterWord(index){
+    //     return (index>=this.getFirstTitleWordIndex())&&(index<=this.getLastWordIndex());
+    // }
 
-    hideAllWords(){
-        // debugger;
-        for(let word of this.wordList){
-            word.hide();
-        }
-    }
+    // hideAllWords(){
+    //     // debugger;
+    //     for(let word of this.wordList){
+    //         word.hide();
+    //     }
+    // }
 
-    showAllWords(){
-        for(let word of this.wordList){
-            word.show();
-        }
-    }
+    // showAllWords(){
+    //     for(let word of this.wordList){
+    //         word.show();
+    //     }
+    // }
 
-    markAllWord(wordList){
-        for(let i = this.getFirstTitleWordIndex();i<this.getLastWordIndex();i++){
-            wordList[i].getElement().setAttribute('fr-chapter-index',this.chapterIndex);
-            this.wordList.push(wordList[i]);
-        }
-    }
+    // markAllWord(wordList){
+    //     for(let i = this.getFirstTitleWordIndex();i<this.getLastWordIndex();i++){
+    //         wordList[i].getElement().setAttribute('fr-chapter-index',this.chapterIndex);
+    //         this.wordList.push(wordList[i]);
+    //     }
+    // }
     
-    wrapWordElements(wordList,titleElement){
-        let commonAncestorList = DOMHelper.findCommomAncestors(wordList,titleElement);
-        let wrappedElements = DOMHelper.wrapElements(commonAncestorList,'fr-subchapter');
-        return wrappedElements;
-    }
+    // wrapWordElements(wordList,titleElement){
+    //     let commonAncestorList = DOMHelper.findCommomAncestors(wordList,titleElement);
+    //     let wrappedElements = DOMHelper.wrapElements(commonAncestorList,'fr-subchapter');
+    //     return wrappedElements;
+    // }
 
-    static splitEltToChapters(textElt, wordList){
-        let chapterEltList = textElt.querySelectorAll('.fr-chapter'); 
-        for(let chapterElt of chapterEltList){
-            Chapter.markChapterTitle(chapterElt);
-        }
-        let chapterList = [];
-        let firstWordIndex;
-        let lastWordIndex;
-        let bChapterTitleFlag = false;
-        let chapterIndex = -1;
+    // static splitEltToChapters(textElt, wordList){
+    //     let chapterEltList = textElt.querySelectorAll('.fr-chapter'); 
+    //     for(let chapterElt of chapterEltList){
+    //         Chapter.markChapterTitle(chapterElt);
+    //     }
+    //     let chapterList = [];
+    //     let firstWordIndex;
+    //     let lastWordIndex;
+    //     let bChapterTitleFlag = false;
+    //     let chapterIndex = -1;
 
         
-        let firstTitleWordList = textElt.querySelectorAll('[data-fr-chapter-title-first-word]');
-        let lastTitleWordList = textElt.querySelectorAll('[data-fr-chapter-title-last-word]');
-        console.assert(firstTitleWordList.length==lastTitleWordList.length);
-        let prevChapter = null;
-        for(let i = 0; i<firstTitleWordList.length;++i){
-            let chapter = new Chapter(firstTitleWordList[i],lastTitleWordList[i],i);
-            let nextBound= firstTitleWordList[++i];
-            if (!!nextBound){
-                chapter.setLastWordIndex(nextBound.getAttribute('[data-fr-word-index]')-1);
-            }
-            else{
-                chapter.setLastWordIndex(wordList.length-1);
-            }
-            chapterList.push(chapter);
-        }
+    //     let firstTitleWordList = textElt.querySelectorAll('[data-fr-chapter-title-first-word]');
+    //     let lastTitleWordList = textElt.querySelectorAll('[data-fr-chapter-title-last-word]');
+    //     console.assert(firstTitleWordList.length==lastTitleWordList.length);
+    //     let prevChapter = null;
+    //     for(let i = 0; i<firstTitleWordList.length;++i){
+    //         let chapter = new Chapter(firstTitleWordList[i],lastTitleWordList[i],i);
+    //         let nextBound= firstTitleWordList[++i];
+    //         if (!!nextBound){
+    //             chapter.setLastWordIndex(nextBound.getAttribute('[data-fr-word-index]')-1);
+    //         }
+    //         else{
+    //             chapter.setLastWordIndex(wordList.length-1);
+    //         }
+    //         chapterList.push(chapter);
+    //     }
 
-        console.log(chapterList,'ChapterList');
-        return chapterList;
+    //     console.log(chapterList,'ChapterList');
+    //     return chapterList;
 
-        // for(let i = 0;i<wordList.length;++i){
-        //     let wordElt = wordList[i].getElement();
+    //     // for(let i = 0;i<wordList.length;++i){
+    //     //     let wordElt = wordList[i].getElement();
             
 
-        //     if(wordElt.hasAttribute('data-fr-chapter-title-first-word')){
-        //         bChapterTitleFlag =true;
-        //         chapterIndex+=1;
-        //     }
-        //     if(wordElt.hasAttribute('data-fr-chapter-title-last-word')){
-        //         bChapterTitleFlag = false;
-        //         continue;
-        //     }
-        //     if(!bChapterTitleFlag){
+    //     //     if(wordElt.hasAttribute('data-fr-chapter-title-first-word')){
+    //     //         bChapterTitleFlag =true;
+    //     //         chapterIndex+=1;
+    //     //     }
+    //     //     if(wordElt.hasAttribute('data-fr-chapter-title-last-word')){
+    //     //         bChapterTitleFlag = false;
+    //     //         continue;
+    //     //     }
+    //     //     if(!bChapterTitleFlag){
 
-        //     }
-        // }
+    //     //     }
+    //     // }
 
         
-    }
+    // }
 
-    static markChapterTitle(chapterTitleElt){
-        let wordList = chapterTitleElt.querySelectorAll('.fr-word');
-        console.assert(wordList.length>0);
-        let lastIndex = wordList.length-1;
-        let firstElement = wordList[0];
-        let lastElement = wordList[lastIndex];
-        firstElement.setAttribute('data-fr-chapter-title-first-word','1');
-        lastElement.setAttribute('data-fr-chapter-title-last-word','1');
-    }
+    // static markChapterTitle(chapterTitleElt){
+    //     let wordList = chapterTitleElt.querySelectorAll('.fr-word');
+    //     console.assert(wordList.length>0);
+    //     let lastIndex = wordList.length-1;
+    //     let firstElement = wordList[0];
+    //     let lastElement = wordList[lastIndex];
+    //     firstElement.setAttribute('data-fr-chapter-title-first-word','1');
+    //     lastElement.setAttribute('data-fr-chapter-title-last-word','1');
+    // }
 
 }
 class Constants{
     static get SPEED (){ return 4000}; 
+    static get BASESPEEDCHANGE(){return 100};
+    static get SHIFTSPEEDCHANGE(){return 500};
 }
 class DOMHelper {
 
@@ -496,7 +498,7 @@ class Reader {
     init() {
         this.playBtn = document.querySelector('[data-fr-pause-button]');
         DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.attachClickEventS('[data-fr-text-container]',this.selectWordCallbackBinded);
+        DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
 
         TextProcessor.formatText(this.textElt);
 
@@ -505,25 +507,17 @@ class Reader {
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
         this.wordList = Word.createWordList(indexedWordList);
         // this.chapterList = Chapter.splitWordListToChapters(this.wordList);
-        this.chapterList = Chapter.splitEltToChapters(this.textElt,this.wordList);
-        this.currentChapter = null;
-        // if(this.chapterList.length>0){
-        //     for(let chapter of this.chapterList){
-        //         chapter.init();
-        //     }
-
-        //     this.currentChapter = this.chapterList[0];
-        //     this.currentChapter.showAllWords();
-        // }
+        // this.chapterList = Chapter.splitEltToChapters(this.textElt, this.wordList);
+        // this.currentChapter = null;
         const count = this.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
 
         this.spaceCallback = this.spaceCallbackFunction.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
-//TODO Chapters
-        let chapters = document.querySelectorAll('.fr-chapter');
-        console.log(chapters);
+        //TODO Chapters
+        // let chapters = document.querySelectorAll('.fr-chapter');
+        // console.log(chapters);
 
     }
 
@@ -544,8 +538,7 @@ class Reader {
 
     selectWordCallback(e) {
         let el = e.target;
-        if (el.hasAttribute('data-fr-word-index'))
-        {
+        if (el.hasAttribute('data-fr-word-index')) {
             let index = el.getAttribute('data-fr-word-index');
             index = parseInt(index);
             if (index === index) {
@@ -567,7 +560,7 @@ class Reader {
     }
 
 
-// TODO Remove event binding with Play Button
+    // TODO Remove event binding with Play Button
     pauseCallback(e) {
         if (this.isPlaying()) {
             console.log('Paused');
@@ -602,7 +595,7 @@ class Reader {
 
     clean() {
         DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.removeClickEventS('[data-fr-text-container]',this.selectWordCallbackBinded);
+        DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
         document.removeEventListener('keydown', this.spaceCallback, true);
         this.playFlag = false;
     }
@@ -638,11 +631,11 @@ class Reader {
         loopWord = this.nextWord(loopWord);
 
         let wordChapterIndex = loopWord.extractChapterIndex();
-        if(!!this.currentChapter){
-        if(this.currentChapter.getIndex()<wordChapterIndex){
-            this.currentChapter = this.chapterList[wordChapterIndex];
-            this.currentChapter.showAllWords();
-        }            
+        if (!!this.currentChapter) {
+            if (this.currentChapter.getIndex() < wordChapterIndex) {
+                this.currentChapter = this.chapterList[wordChapterIndex];
+                this.currentChapter.showAllWords();
+            }
         }
 
 
@@ -676,11 +669,11 @@ class Reader {
     calculateSpeed() {
         let speed = this.statistics.getSpeed(this.currentWord.getLength());
         let now = Date.now();
-        let lastDate = this.lastDate?this.lastDate:now;
+        let lastDate = this.lastDate ? this.lastDate : now;
         let timeDelta = now - lastDate;
-        speed-=timeDelta;
-        if(speed<0){
-            speed=0;
+        speed -= timeDelta;
+        if (speed < 0) {
+            speed = 0;
         }
         // console.log("Timeout for word", this.currentWord, speed);
         return speed;
@@ -692,12 +685,12 @@ class Reader {
         console.assert(this.textElt != undefined);
     }
 
-    save(){
+    save() {
         const currentIndex = this.currentWord.extractIndex();
         StorageManager.saveLastWord(currentIndex);
     }
 
-    load(){
+    load() {
         let index = StorageManager.loadLastWord();
         this.currentWord = this.wordList[index];
         this.currentWord.mark();
@@ -748,15 +741,15 @@ class Statistics {
     }
 
     increaseSpeed(e){
-        let value = 10;
-        if(e.shiftKey) value = 100;
+        let value = Constants.BASESPEEDCHANGE;
+        if(e.shiftKey) value = Constants.SHIFTSPEEDCHANGE;
         this.speed+=value;
         this.updateView();
     }
 
     decreaseSpeed(e){
-        let value = 10;
-        if(e.shiftKey) value = 100;
+        let value = Constants.BASESPEEDCHANGE;
+        if(e.shiftKey) value = Constants.SHIFTSPEEDCHANGE;
         this.speed-=value;
 
         if(this.speed<0){
@@ -1066,8 +1059,7 @@ class ViewCreator{
 }
 class ViewManager{
 
-    constructor(){
-        this.vc = new ViewCreator(this.dh);        
+    constructor(){ 
         this.controller = new FRController(this);
         this.mainContainerElt;
         this.statBlock;
@@ -1075,7 +1067,8 @@ class ViewManager{
     }
 
     createView(quickStart){
-        const mainContainerElt = this.vc.createMainContainer();
+        let vc = new ViewCreator();  
+        const mainContainerElt = vc.createMainContainer();
         this.mainContainerElt = mainContainerElt;
         
         this.attachEventListeners();
@@ -1086,6 +1079,16 @@ class ViewManager{
 
     }
 
+    start(textElement){
+        DOMHelper.activeFlag = true;
+        DOMHelper.hidePage();
+        let textElt = TextProcessor.processText(textElement);
+        this.setTextElement(textElt);
+        this.showReadingScreen();
+        this.createReader();
+        this.reader.init();
+    }
+    
     attachEventListeners(){
         const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
         console.log(this.mainContainerElt);
@@ -1103,15 +1106,7 @@ class ViewManager{
         this.reader.test();
     }
 
-    start(textElement){
-        DOMHelper.activeFlag = true;
-        DOMHelper.hidePage();
-        let textElt = TextProcessor.processText(textElement);
-        this.setTextElement(textElt);
-        this.showReadingScreen();
-        this.createReader();
-        this.reader.init();
-    }
+
 
 
 
@@ -1215,7 +1210,7 @@ class Word {
     createMirrorElement(){
         let mirror = this.wordElement.cloneNode(true);
         // this.mirrorElement = mirror;
-        console.assert(!!mirror,"Mirror element must be not null");   
+        console.assert(!!mirror,"Mirror element must not be null");   
         mirror.style.position = "absolute";
         mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
         mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
@@ -1281,14 +1276,14 @@ class Word {
 }
 class WordRunner{
 
-    constructor(reader){
-        this.reader = reader;
-    }
+    // constructor(reader){
+    //     this.reader = reader;
+    // }
 
-    //TODO
-    showNextWord(word){
+    // //TODO
+    // showNextWord(word){
         
-    }
+    // }
 
 }
 var styleCSS = `.launch_button{
