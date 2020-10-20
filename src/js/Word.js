@@ -62,29 +62,32 @@ class Word {
     mark(){
         let rect = this.wordElement.getBoundingClientRect();
         this.boundingRect = rect;
-        this.createMirrorElement();
+        // this.createMirrorElement();
         this.mirrorElement = this.createMirrorElement();
         document.body.appendChild(this.mirrorElement);
-        this.wordElement.style.visibility ="hidden";  
+        // this.wordElement.style.visibility ="hidden";  
         this.scrollIntoView();
     }
 
+
+//TODO
     createMirrorElement(){
         let mirror = this.wordElement.cloneNode(true);
         // this.mirrorElement = mirror;
         console.assert(!!mirror,"Mirror element must not be null");   
         mirror.style.position = "absolute";
+
         mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
-        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
+        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';        
         mirror.style.zIndex = 120000;
         mirror.style.background = "#EEE";
         mirror.classList.add('fr-focus-word');
-        mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
+        mirror.setAttribute(Constants.FAST_READER_ATTRIBUTE,'1');
         return mirror;
     }
 
-    unmark(){
-        this.wordElement.style.visibility ="";
+    unmark(){+
+        // this.wordElement.style.visibility ="";
         document.body.removeChild(this.mirrorElement);
     }
 

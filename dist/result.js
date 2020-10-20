@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1 Mon Sep 07 2020 12:10:18 GMT+0300 (RTZ 2 (зима))
+// @version      0.1 Mon Oct 19 2020 17:08:12 GMT+0300 (RTZ 2 (зима))
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -172,12 +172,9 @@ class Constants{
     static get SPEED (){ return 4000}; 
     static get BASESPEEDCHANGE(){return 100};
     static get SHIFTSPEEDCHANGE(){return 500};
+    static get FAST_READER_ATTRIBUTE(){return "data-fast-reader-attribute"};
 }
 class DOMHelper {
-
-    static c = {
-        FRAttribute:"data-fast-reader-attribute"
-    };
 
     static activeFlag = false;
 
@@ -185,9 +182,15 @@ class DOMHelper {
         return this.activeFlag;
     }
 
+    static applyStyle(styleCSS){
+        let styleElt = document.createElement("style");
+        styleElt.innerHTML = styleCSS;
+        document.head.appendChild(styleElt);
+    }
+
     static createFRElement(type, className, selfName, text) {
         let el = this.createElement(type, className, selfName, text);
-        el.setAttribute(DOMHelper.c.FRAttribute, "true");
+        el.setAttribute(Constants.FAST_READER_ATTRIBUTE,1);
         return el;
     }
 
@@ -214,11 +217,23 @@ class DOMHelper {
     }
 
     static removeFRElements() {
-        let list = document.querySelectorAll("[" + DOMHelper.c.FRAttribute + "]");
+        let list = document.querySelectorAll("[" + Constants.FAST_READER_ATTRIBUTE + "]");
         console.log(list);
         list = Array.from(list);
         list.forEach((e) => e.remove());
 
+    }
+
+    static getElementByCoordinates(x, y, className){
+       let elementList = document.elementsFromPoint(x,y);
+       let results = elementList.filter((el)=>{
+           if(el.classList.contains(className))
+           return el;
+       });
+       if(results.length){
+           return results[0];
+       }
+       return null;
     }
 
     static showPage(){
@@ -235,6 +250,46 @@ class DOMHelper {
         list.forEach(l=>{
             l.classList.add("no_scroll_hide");
         });
+    }
+
+
+
+    static createOverlay(){
+        if(document.querySelector(".fr-overlay")){
+            return;
+        }
+
+        let overlay = DOMHelper.createFRElement("div","fr-overlay","data-fr-overlay");
+        
+        // = document.createElement("div");
+        // overlay.className = "fr-overlay";
+
+
+
+        overlay.style.height = document.body.scrollHeight+"px"; 
+        document.body.appendChild(overlay);
+    }
+
+    static removeOverlay(){
+        let overlay = document.querySelector(".fr-overlay");
+        if(overlay){
+            overlay.remove();
+        }
+    }
+
+    static showOverlay(){
+        let overlay = document.querySelector(".fr-overlay");
+        overlay.style.display = "block";
+    }
+
+    static hideOverlay(){
+        let overlay = document.querySelector(".fr-overlay");
+        overlay.style.display = "none";
+    }
+
+    static getOverlayElement(){
+        let overlay = document.querySelector(".fr-overlay");
+        return overlay;
     }
 
 
@@ -264,6 +319,17 @@ class DOMHelper {
      }
 
 
+    static getIndexFromWordElement(elt){
+        if (elt.hasAttribute('data-fr-word-index')) {
+            let index = elt.getAttribute('data-fr-word-index');
+            index = parseInt(index);
+            if (index === index) {
+                return index;
+            }
+        }
+        return null;
+    }
+
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
         return DOMHelper.isInViewportRect(bounding);
@@ -284,9 +350,7 @@ class DOMHelper {
         el.setAttribute(indexName,index);
         return el;
        });
-    //    orderedList.forEach((el,index)=>{
-    //     el.setAttribute(indexName,index);
-    //    });
+
        return indexedList;
    }
 
@@ -300,15 +364,6 @@ static getOrderedElementListByClass(containerElt, className){
         return false;
     });
     return orderedElementList;
-}
-
-static hideSentences(textElt,firstPos){
-    // let sList = textElt.querySelectorAll('.fr-sentence');
-    // sList.forEach((el,index)=>{
-    //     if(index>firstPos){
-    //         // el.style.display = "none";
-    //     }
-    // });
 }
 
 //Walk in depth
@@ -367,6 +422,16 @@ static getOrderedNodeList(element,options) {
 
 class FastReaderMain{
 
+    static init(){
+        console.log("Init FastReaderMain");
+        DOMHelper.applyStyle(styleCSS);
+        let viewCreator = new ViewCreator();
+        let launchBtn = viewCreator.createLaunchButton(FastReaderMain.launch);
+        document.body.appendChild(launchBtn);
+        FastReaderMain.expandStringPrototype();
+        FastReaderMain.addMainListeners();
+    }
+
 
     static launch(event, quickStart){
         event.stopPropagation();
@@ -376,15 +441,7 @@ class FastReaderMain{
         // document.removeEventListener('click',FastReaderMain.launch);
     }
 
-    static init(){
-        console.log("Init FastReaderMain");
-        this.applyStyle(styleCSS);
-        let viewCreator = new ViewCreator();
-        let launchBtn = viewCreator.createLaunchButton(FastReaderMain.launch);
-        document.body.appendChild(launchBtn);
-        FastReaderMain.expandStringPrototype();
-        FastReaderMain.addMainListeners();
-        }
+
 
     static addMainListeners(){
         document.addEventListener('keydown',(e)=>{
@@ -409,13 +466,6 @@ class FastReaderMain{
             if (seconds < 10) {seconds = "0"+seconds;}
             return hours+':'+minutes+':'+seconds;
         }
-    }
-
-
-    static applyStyle(styleCSS){
-        let styleElt = document.createElement("style");
-        styleElt.innerHTML = styleCSS;
-        document.head.appendChild(styleElt);
     }
 }
 
@@ -491,6 +541,7 @@ class Reader {
         this.timeout;
         this.pauseCallbackBinded = this.pauseCallback.bind(this);
         this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
+        this.selectWordBehindOverlayCallbackBinded = this.selectWordBehindOverlayCallback.bind(this);
         this.startWordIndex = 0;
     }
 
@@ -499,6 +550,8 @@ class Reader {
         this.playBtn = document.querySelector('[data-fr-pause-button]');
         DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
         DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
+        DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
+
 
         TextProcessor.formatText(this.textElt);
 
@@ -537,17 +590,26 @@ class Reader {
     }
 
     selectWordCallback(e) {
-        let el = e.target;
-        if (el.hasAttribute('data-fr-word-index')) {
-            let index = el.getAttribute('data-fr-word-index');
-            index = parseInt(index);
-            if (index === index) {
-                this.currentWord.unmark();
-                this.currentWord = this.wordList[index];
-                this.currentWord.mark();
-                console.log(this.currentWord);
-            }
+        let index = DOMHelper.getIndexFromWordElement(e.target);
+        if(index){
+            this.selectWord(index);
         }
+    }
+
+    selectWordBehindOverlayCallback(e){
+        console.log('Overlay callback');
+        let wordElt = DOMHelper.getElementByCoordinates(e.clientX, e.clientY,"fr-word");
+        if(wordElt){
+            let index = DOMHelper.getIndexFromWordElement(wordElt);
+            this.selectWord(index);
+        }
+    }
+
+    selectWord(index){
+        this.currentWord.unmark();
+        this.currentWord = this.wordList[index];
+        this.currentWord.mark();
+        console.log(this.currentWord,index);
     }
 
     spaceCallbackFunction(e) {
@@ -583,6 +645,7 @@ class Reader {
         this.playFlag = false;
         clearTimeout(this.timeout);
         this.save();
+        DOMHelper.hideOverlay();
     }
 
     play() {
@@ -591,11 +654,13 @@ class Reader {
             return;
         }
         this.playFlag = true;
+        DOMHelper.showOverlay();
     }
 
     clean() {
         DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
         DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
+        DOMHelper.removeClickEventS('[data-fr-overlay]',this.selectWordBehindOverlayCallbackBinded);
         document.removeEventListener('keydown', this.spaceCallback, true);
         this.playFlag = false;
     }
@@ -626,18 +691,8 @@ class Reader {
         if (loopWord) {
             loopWord.unmark();
         }
-        // let loopElement = this.currentElt;
 
         loopWord = this.nextWord(loopWord);
-
-        let wordChapterIndex = loopWord.extractChapterIndex();
-        if (!!this.currentChapter) {
-            if (this.currentChapter.getIndex() < wordChapterIndex) {
-                this.currentChapter = this.chapterList[wordChapterIndex];
-                this.currentChapter.showAllWords();
-            }
-        }
-
 
         this.currentWord = loopWord;
         if (!loopWord) {
@@ -679,11 +734,11 @@ class Reader {
         return speed;
     }
 
-    test() {
-        console.assert(this.vm != undefined);
-        console.assert(this.statistics != undefined);
-        console.assert(this.textElt != undefined);
-    }
+    // test() {
+    //     console.assert(this.vm != undefined);
+    //     console.assert(this.statistics != undefined);
+    //     console.assert(this.textElt != undefined);
+    // }
 
     save() {
         const currentIndex = this.currentWord.extractIndex();
@@ -1085,6 +1140,7 @@ class ViewManager{
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
+        DOMHelper.createOverlay();
         this.createReader();
         this.reader.init();
     }
@@ -1103,7 +1159,7 @@ class ViewManager{
 
     createReader(){
         this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector('[data-fr-text-container]'));
-        this.reader.test();
+        // this.reader.test();
     }
 
 
@@ -1200,29 +1256,32 @@ class Word {
     mark(){
         let rect = this.wordElement.getBoundingClientRect();
         this.boundingRect = rect;
-        this.createMirrorElement();
+        // this.createMirrorElement();
         this.mirrorElement = this.createMirrorElement();
         document.body.appendChild(this.mirrorElement);
-        this.wordElement.style.visibility ="hidden";  
+        // this.wordElement.style.visibility ="hidden";  
         this.scrollIntoView();
     }
 
+
+//TODO
     createMirrorElement(){
         let mirror = this.wordElement.cloneNode(true);
         // this.mirrorElement = mirror;
         console.assert(!!mirror,"Mirror element must not be null");   
         mirror.style.position = "absolute";
+
         mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
-        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';
+        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';        
         mirror.style.zIndex = 120000;
         mirror.style.background = "#EEE";
         mirror.classList.add('fr-focus-word');
-        mirror.setAttribute(DOMHelper.c.FRAttribute,'1');
+        mirror.setAttribute(Constants.FAST_READER_ATTRIBUTE,'1');
         return mirror;
     }
 
-    unmark(){
-        this.wordElement.style.visibility ="";
+    unmark(){+
+        // this.wordElement.style.visibility ="";
         document.body.removeChild(this.mirrorElement);
     }
 
@@ -1337,6 +1396,7 @@ var styleCSS = `.launch_button{
     min-height: 50px;
     width:100%;
     background:#c4c4c4;
+    z-index: 200000;
     }
     .fr-menu{
     color:black;
@@ -1397,7 +1457,17 @@ var styleCSS = `.launch_button{
     .fr-focus-word{
         font-size: 150%;
         color: black;
-    };
+        font-weight: bold;
+    } 
+
+    .fr-overlay{
+        position: absolute;
+        top:0;
+        left:0;
+        width: 100%;
+        height: 100%;
+        -webkit-user-select: none;
+    }
 
     .color1{
     background:#EEE;

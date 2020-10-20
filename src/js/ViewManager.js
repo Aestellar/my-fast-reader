@@ -26,6 +26,7 @@ class ViewManager{
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
+        DOMHelper.createOverlay();
         this.createReader();
         this.reader.init();
     }
@@ -44,7 +45,7 @@ class ViewManager{
 
     createReader(){
         this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector('[data-fr-text-container]'));
-        this.reader.test();
+        // this.reader.test();
     }
 
 

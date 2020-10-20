@@ -1,18 +1,20 @@
 class DOMHelper {
 
-    static c = {
-        FRAttribute:"data-fast-reader-attribute"
-    };
-
     static activeFlag = false;
 
     static isActive(){
         return this.activeFlag;
     }
 
+    static applyStyle(styleCSS){
+        let styleElt = document.createElement("style");
+        styleElt.innerHTML = styleCSS;
+        document.head.appendChild(styleElt);
+    }
+
     static createFRElement(type, className, selfName, text) {
         let el = this.createElement(type, className, selfName, text);
-        el.setAttribute(DOMHelper.c.FRAttribute, "true");
+        el.setAttribute(Constants.FAST_READER_ATTRIBUTE,1);
         return el;
     }
 
@@ -39,11 +41,23 @@ class DOMHelper {
     }
 
     static removeFRElements() {
-        let list = document.querySelectorAll("[" + DOMHelper.c.FRAttribute + "]");
+        let list = document.querySelectorAll("[" + Constants.FAST_READER_ATTRIBUTE + "]");
         console.log(list);
         list = Array.from(list);
         list.forEach((e) => e.remove());
 
+    }
+
+    static getElementByCoordinates(x, y, className){
+       let elementList = document.elementsFromPoint(x,y);
+       let results = elementList.filter((el)=>{
+           if(el.classList.contains(className))
+           return el;
+       });
+       if(results.length){
+           return results[0];
+       }
+       return null;
     }
 
     static showPage(){
@@ -60,6 +74,46 @@ class DOMHelper {
         list.forEach(l=>{
             l.classList.add("no_scroll_hide");
         });
+    }
+
+
+
+    static createOverlay(){
+        if(document.querySelector(".fr-overlay")){
+            return;
+        }
+
+        let overlay = DOMHelper.createFRElement("div","fr-overlay","data-fr-overlay");
+        
+        // = document.createElement("div");
+        // overlay.className = "fr-overlay";
+
+
+
+        overlay.style.height = document.body.scrollHeight+"px"; 
+        document.body.appendChild(overlay);
+    }
+
+    static removeOverlay(){
+        let overlay = document.querySelector(".fr-overlay");
+        if(overlay){
+            overlay.remove();
+        }
+    }
+
+    static showOverlay(){
+        let overlay = document.querySelector(".fr-overlay");
+        overlay.style.display = "block";
+    }
+
+    static hideOverlay(){
+        let overlay = document.querySelector(".fr-overlay");
+        overlay.style.display = "none";
+    }
+
+    static getOverlayElement(){
+        let overlay = document.querySelector(".fr-overlay");
+        return overlay;
     }
 
 
@@ -89,6 +143,17 @@ class DOMHelper {
      }
 
 
+    static getIndexFromWordElement(elt){
+        if (elt.hasAttribute('data-fr-word-index')) {
+            let index = elt.getAttribute('data-fr-word-index');
+            index = parseInt(index);
+            if (index === index) {
+                return index;
+            }
+        }
+        return null;
+    }
+
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
         return DOMHelper.isInViewportRect(bounding);
@@ -109,9 +174,7 @@ class DOMHelper {
         el.setAttribute(indexName,index);
         return el;
        });
-    //    orderedList.forEach((el,index)=>{
-    //     el.setAttribute(indexName,index);
-    //    });
+
        return indexedList;
    }
 
@@ -125,15 +188,6 @@ static getOrderedElementListByClass(containerElt, className){
         return false;
     });
     return orderedElementList;
-}
-
-static hideSentences(textElt,firstPos){
-    // let sList = textElt.querySelectorAll('.fr-sentence');
-    // sList.forEach((el,index)=>{
-    //     if(index>firstPos){
-    //         // el.style.display = "none";
-    //     }
-    // });
 }
 
 //Walk in depth

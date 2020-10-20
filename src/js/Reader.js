@@ -11,6 +11,7 @@ class Reader {
         this.timeout;
         this.pauseCallbackBinded = this.pauseCallback.bind(this);
         this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
+        this.selectWordBehindOverlayCallbackBinded = this.selectWordBehindOverlayCallback.bind(this);
         this.startWordIndex = 0;
     }
 
@@ -19,6 +20,8 @@ class Reader {
         this.playBtn = document.querySelector('[data-fr-pause-button]');
         DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
         DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
+        DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
+
 
         TextProcessor.formatText(this.textElt);
 
@@ -57,17 +60,26 @@ class Reader {
     }
 
     selectWordCallback(e) {
-        let el = e.target;
-        if (el.hasAttribute('data-fr-word-index')) {
-            let index = el.getAttribute('data-fr-word-index');
-            index = parseInt(index);
-            if (index === index) {
-                this.currentWord.unmark();
-                this.currentWord = this.wordList[index];
-                this.currentWord.mark();
-                console.log(this.currentWord);
-            }
+        let index = DOMHelper.getIndexFromWordElement(e.target);
+        if(index){
+            this.selectWord(index);
         }
+    }
+
+    selectWordBehindOverlayCallback(e){
+        console.log('Overlay callback');
+        let wordElt = DOMHelper.getElementByCoordinates(e.clientX, e.clientY,"fr-word");
+        if(wordElt){
+            let index = DOMHelper.getIndexFromWordElement(wordElt);
+            this.selectWord(index);
+        }
+    }
+
+    selectWord(index){
+        this.currentWord.unmark();
+        this.currentWord = this.wordList[index];
+        this.currentWord.mark();
+        console.log(this.currentWord,index);
     }
 
     spaceCallbackFunction(e) {
@@ -103,6 +115,7 @@ class Reader {
         this.playFlag = false;
         clearTimeout(this.timeout);
         this.save();
+        DOMHelper.hideOverlay();
     }
 
     play() {
@@ -111,11 +124,13 @@ class Reader {
             return;
         }
         this.playFlag = true;
+        DOMHelper.showOverlay();
     }
 
     clean() {
         DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
         DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
+        DOMHelper.removeClickEventS('[data-fr-overlay]',this.selectWordBehindOverlayCallbackBinded);
         document.removeEventListener('keydown', this.spaceCallback, true);
         this.playFlag = false;
     }
@@ -146,18 +161,8 @@ class Reader {
         if (loopWord) {
             loopWord.unmark();
         }
-        // let loopElement = this.currentElt;
 
         loopWord = this.nextWord(loopWord);
-
-        let wordChapterIndex = loopWord.extractChapterIndex();
-        if (!!this.currentChapter) {
-            if (this.currentChapter.getIndex() < wordChapterIndex) {
-                this.currentChapter = this.chapterList[wordChapterIndex];
-                this.currentChapter.showAllWords();
-            }
-        }
-
 
         this.currentWord = loopWord;
         if (!loopWord) {
@@ -199,11 +204,11 @@ class Reader {
         return speed;
     }
 
-    test() {
-        console.assert(this.vm != undefined);
-        console.assert(this.statistics != undefined);
-        console.assert(this.textElt != undefined);
-    }
+    // test() {
+    //     console.assert(this.vm != undefined);
+    //     console.assert(this.statistics != undefined);
+    //     console.assert(this.textElt != undefined);
+    // }
 
     save() {
         const currentIndex = this.currentWord.extractIndex();

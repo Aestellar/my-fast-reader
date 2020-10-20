@@ -1,5 +1,15 @@
 class FastReaderMain{
 
+    static init(){
+        console.log("Init FastReaderMain");
+        DOMHelper.applyStyle(styleCSS);
+        let viewCreator = new ViewCreator();
+        let launchBtn = viewCreator.createLaunchButton(FastReaderMain.launch);
+        document.body.appendChild(launchBtn);
+        FastReaderMain.expandStringPrototype();
+        FastReaderMain.addMainListeners();
+    }
+
 
     static launch(event, quickStart){
         event.stopPropagation();
@@ -9,15 +19,7 @@ class FastReaderMain{
         // document.removeEventListener('click',FastReaderMain.launch);
     }
 
-    static init(){
-        console.log("Init FastReaderMain");
-        this.applyStyle(styleCSS);
-        let viewCreator = new ViewCreator();
-        let launchBtn = viewCreator.createLaunchButton(FastReaderMain.launch);
-        document.body.appendChild(launchBtn);
-        FastReaderMain.expandStringPrototype();
-        FastReaderMain.addMainListeners();
-        }
+
 
     static addMainListeners(){
         document.addEventListener('keydown',(e)=>{
@@ -42,13 +44,6 @@ class FastReaderMain{
             if (seconds < 10) {seconds = "0"+seconds;}
             return hours+':'+minutes+':'+seconds;
         }
-    }
-
-
-    static applyStyle(styleCSS){
-        let styleElt = document.createElement("style");
-        styleElt.innerHTML = styleCSS;
-        document.head.appendChild(styleElt);
     }
 }
 

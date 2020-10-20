@@ -49,6 +49,7 @@ var styleCSS = `.launch_button{
     min-height: 50px;
     width:100%;
     background:#c4c4c4;
+    z-index: 200000;
     }
     .fr-menu{
     color:black;
@@ -109,7 +110,17 @@ var styleCSS = `.launch_button{
     .fr-focus-word{
         font-size: 150%;
         color: black;
-    };
+        font-weight: bold;
+    } 
+
+    .fr-overlay{
+        position: absolute;
+        top:0;
+        left:0;
+        width: 100%;
+        height: 100%;
+        -webkit-user-select: none;
+    }
 
     .color1{
     background:#EEE;
