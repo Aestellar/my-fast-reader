@@ -23,10 +23,12 @@ class ViewManager{
     start(textElement){
         DOMHelper.activeFlag = true;
         DOMHelper.hidePage();
+    
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
-        DOMHelper.createOverlay();
+        DOMHelper.createOverlay();   
+        
         this.createReader();
         this.reader.init();
     }

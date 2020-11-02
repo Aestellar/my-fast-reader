@@ -762,19 +762,19 @@ class Statistics {
 
     updateView(){
         let speedElt = this.statElt.querySelector('[data-fr-speed-counter]');
-        speedElt.innerHTML = 'Reading speed:'+this.speed;
+        speedElt.textContent = 'Reading speed:'+this.speed;
         let wordsPerSelection = this.statElt.querySelector('[data-fr-words-per-selection]');
-        wordsPerSelection.innerHTML = 'Words per selection:'+this.wordsPerSelection;
+        wordsPerSelection.textContent = 'Words per selection:'+this.wordsPerSelection;
         let totalTimeElt = this.statElt.querySelector('[fr-time-to-read-total]');
         let totalTime = this.symbolsCount*60/this.speed;
 
-        totalTimeElt.innerHTML = 'Time to read:' + this.getFormattedTime(totalTime);
+        totalTimeElt.textContent = 'Time to read:' + this.getFormattedTime(totalTime);
         let remainingTimeElt = this.statElt.querySelector('[fr-time-to-read-remaining]')
         let remainingTime = this.remainingSymbols*60/this.speed;
-        remainingTimeElt.innerHTML = 'Remaining time:'+this.getFormattedTime(remainingTime);
+        remainingTimeElt.textContent = 'Remaining time:'+this.getFormattedTime(remainingTime);
         
         let totalCharactersCountElt = this.statElt.querySelector('[fr-total-characters-count]');
-        totalCharactersCountElt.innerHTML = "Total characters: "+this.symbolsCount;
+        totalCharactersCountElt.textContent = "Total characters: "+this.symbolsCount;
         //return this.statElt;
     }
 
@@ -1120,10 +1120,12 @@ class ViewManager{
     start(textElement){
         DOMHelper.activeFlag = true;
         DOMHelper.hidePage();
+    
         let textElt = TextProcessor.processText(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
-        DOMHelper.createOverlay();
+        DOMHelper.createOverlay();   
+        
         this.createReader();
         this.reader.init();
     }
