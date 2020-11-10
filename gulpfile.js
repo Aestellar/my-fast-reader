@@ -40,10 +40,15 @@ gulp.task('concatPre', () => {
 
 });
 
-
+gulp.task('mergecss',()=>{
+    return gulp.src('./src/css/*.css')
+    .pipe(count('## css-files selected'))
+    .pipe(concat('merged.css'))
+    .pipe(gulp.dest('./middle/'));
+})
 
 gulp.task('wrapcss', () => {
-    return gulp.src('./src/css/fr.css')
+    return gulp.src('./middle/merged.css')
         .pipe(insert.wrap('var styleCSS = `', '`;'))
         .pipe(gulp.dest('./src/middle/'));
 });
@@ -66,7 +71,7 @@ gulp.task('copyToClipboard',()=>{
     .pipe(clipboard());
 });
 
-gulp.task('build',gulp.series('concatPre','wrapcss','cssrename','buildjs','copyToClipboard'));
+gulp.task('build',gulp.series('concatPre','mergecss','wrapcss','cssrename','buildjs','copyToClipboard'));
 
 gulp.task('watch',()=>{
     return gulp.watch('./src/js/*.js',gulp.series('build'));

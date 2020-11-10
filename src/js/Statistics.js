@@ -28,15 +28,15 @@ class Statistics {
         speedElt.textContent = 'Reading speed:'+this.speed;
         let wordsPerSelection = this.statElt.querySelector('[data-fr-words-per-selection]');
         wordsPerSelection.textContent = 'Words per selection:'+this.wordsPerSelection;
-        let totalTimeElt = this.statElt.querySelector('[fr-time-to-read-total]');
+        let totalTimeElt = this.statElt.querySelector('[data-fr-time-to-read-total]');
         let totalTime = this.symbolsCount*60/this.speed;
 
         totalTimeElt.textContent = 'Time to read:' + this.getFormattedTime(totalTime);
-        let remainingTimeElt = this.statElt.querySelector('[fr-time-to-read-remaining]')
+        let remainingTimeElt = this.statElt.querySelector('[data-fr-time-to-read-remaining]')
         let remainingTime = this.remainingSymbols*60/this.speed;
         remainingTimeElt.textContent = 'Remaining time:'+this.getFormattedTime(remainingTime);
         
-        let totalCharactersCountElt = this.statElt.querySelector('[fr-total-characters-count]');
+        let totalCharactersCountElt = this.statElt.querySelector('[data-fr-total-characters-count]');
         totalCharactersCountElt.textContent = "Total characters: "+this.symbolsCount;
         //return this.statElt;
     }

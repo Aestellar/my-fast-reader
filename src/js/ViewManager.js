@@ -28,25 +28,24 @@ class ViewManager{
         this.setTextElement(textElt);
         this.showReadingScreen();
         DOMHelper.createOverlay();   
-        
         this.createReader();
         this.reader.init();
     }
     
     attachEventListeners(){
-        const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
+        const exitBtn = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.exitButtonName));
         console.log(this.mainContainerElt);
         exitBtn.addEventListener('click',this.controller.getClickExitCallback());
         document.addEventListener('keydown',this.controller.getEscapeExitCallback());
     }
 
     createStatBlock(){
-        let statElt = this.mainContainerElt.querySelector('[data-fr-menu]');
+        let statElt = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.menuName));
         this.statBlock = new Statistics(this, statElt);
     }
 
     createReader(){
-        this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector('[data-fr-text-container]'));
+        this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)));
         // this.reader.test();
     }
 
@@ -60,7 +59,7 @@ class ViewManager{
 
     clean(){
         DOMHelper.activeFlag = false;
-        const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
+        const exitBtn = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.exitButtonName));
         exitBtn.removeEventListener('click',this.controller.getClickExitCallback());
         document.removeEventListener('keydown',this.controller.getEscapeExitCallback());
         this.reader.clean();       
@@ -74,7 +73,7 @@ class ViewManager{
     }
 
     setTextElement(textElt){
-        let textContainer = this.mainContainerElt.querySelector('[data-fr-text-container]');
+        let textContainer = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName));
 
         textContainer.appendChild(textElt);
     }

@@ -12,16 +12,16 @@ class DOMHelper {
         document.head.appendChild(styleElt);
     }
 
-    static createFRElement(type, className, selfName, text) {
-        let el = this.createElement(type, className, selfName, text);
+    static createFRElement(type, className,  text) {
+        let el = this.createElement(type, className, text);
         el.setAttribute(Constants.FAST_READER_ATTRIBUTE,1);
         return el;
     }
 
-    static createElement(type, className, selfName, text) {
+    static createElement(type, className, text) {
         let el = document.createElement(type);
         el.className += className;
-        el.setAttribute(selfName, selfName);
+        el.setAttribute("data-"+className, "");
         el.innerHTML = text || "";
         return el;
     }
@@ -58,6 +58,15 @@ class DOMHelper {
            return results[0];
        }
        return null;
+    }
+
+    // static findElementByName(element,name){
+    //     let selector = "["+name+"]";
+    //     return element.querySelector(selector);
+    // }
+
+    static nameToSelector(name){
+        return"["+name+"]";
     }
 
     static showPage(){

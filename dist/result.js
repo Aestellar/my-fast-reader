@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1 Tue Oct 20 2020 14:21:21 GMT+0300 (RTZ 2 (зима))
+// @version      0.1 Wed Nov 11 2020 00:39:33 GMT+0300 (RTZ 2 (зима))
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -173,6 +173,9 @@ class Constants{
     static get BASESPEEDCHANGE(){return 100};
     static get SHIFTSPEEDCHANGE(){return 500};
     static get FAST_READER_ATTRIBUTE(){return "data-fast-reader-attribute"};
+    static get exitButtonName(){return "data-fr-exit-btn"};
+    static get menuName(){return "data-fr-menu"};
+    static get textContainerName(){return 'data-fr-text-container'};
 }
 class DOMHelper {
 
@@ -188,16 +191,16 @@ class DOMHelper {
         document.head.appendChild(styleElt);
     }
 
-    static createFRElement(type, className, selfName, text) {
-        let el = this.createElement(type, className, selfName, text);
+    static createFRElement(type, className,  text) {
+        let el = this.createElement(type, className, text);
         el.setAttribute(Constants.FAST_READER_ATTRIBUTE,1);
         return el;
     }
 
-    static createElement(type, className, selfName, text) {
+    static createElement(type, className, text) {
         let el = document.createElement(type);
         el.className += className;
-        el.setAttribute(selfName, selfName);
+        el.setAttribute("data-"+className, "");
         el.innerHTML = text || "";
         return el;
     }
@@ -234,6 +237,15 @@ class DOMHelper {
            return results[0];
        }
        return null;
+    }
+
+    // static findElementByName(element,name){
+    //     let selector = "["+name+"]";
+    //     return element.querySelector(selector);
+    // }
+
+    static nameToSelector(name){
+        return"["+name+"]";
     }
 
     static showPage(){
@@ -782,15 +794,15 @@ class Statistics {
         speedElt.textContent = 'Reading speed:'+this.speed;
         let wordsPerSelection = this.statElt.querySelector('[data-fr-words-per-selection]');
         wordsPerSelection.textContent = 'Words per selection:'+this.wordsPerSelection;
-        let totalTimeElt = this.statElt.querySelector('[fr-time-to-read-total]');
+        let totalTimeElt = this.statElt.querySelector('[data-fr-time-to-read-total]');
         let totalTime = this.symbolsCount*60/this.speed;
 
         totalTimeElt.textContent = 'Time to read:' + this.getFormattedTime(totalTime);
-        let remainingTimeElt = this.statElt.querySelector('[fr-time-to-read-remaining]')
+        let remainingTimeElt = this.statElt.querySelector('[data-fr-time-to-read-remaining]')
         let remainingTime = this.remainingSymbols*60/this.speed;
         remainingTimeElt.textContent = 'Remaining time:'+this.getFormattedTime(remainingTime);
         
-        let totalCharactersCountElt = this.statElt.querySelector('[fr-total-characters-count]');
+        let totalCharactersCountElt = this.statElt.querySelector('[data-fr-total-characters-count]');
         totalCharactersCountElt.textContent = "Total characters: "+this.symbolsCount;
         //return this.statElt;
     }
@@ -1053,59 +1065,67 @@ class ViewCreator{
     // }
 
     createLaunchButton(launchCallback){
-        let b = DOMHelper.createElement("div","launch_button",'data-fr-reader-button',"Start");
+        let b = DOMHelper.createElement("div","launch_button","Start");
         console.log(b);
         b.addEventListener("click",launchCallback);
         return b;
     }
 
     createMenu(){
-        let menuContainer = DOMHelper.createFRElement("div","fr-menu-container","data-fr-menu-container");
-        let menu = DOMHelper.createElement("div","fr-menu","data-fr-menu");
+        let menuContainer = DOMHelper.createFRElement("div","fr-menu-container");
+        let menu = DOMHelper.createElement("div","fr-menu");
         menuContainer.appendChild(menu);
-        let speedBlock = DOMHelper.createElement("div","fr-speed-block","data-fr-speed-block");
+        let speedBlock = DOMHelper.createElement("div","fr-speed-block");
         menu.appendChild(speedBlock);
-        let speedCounter = DOMHelper.createElement("div","fr-speed-counter","data-fr-speed-counter", "Reading speed:2000wpm");
-        speedBlock.appendChild(speedCounter);
-        let upSpeed = DOMHelper.createElement('button','fr-speed-up','data-fr-speed-up','up');
-        let downSpeed = DOMHelper.createElement('button','fr-speed-down','data-fr-speed-down','down');
-        speedBlock.appendChild(upSpeed);
-        speedBlock.appendChild(downSpeed);
 
-        let wordsPerSelection = DOMHelper.createElement('div','fr-words-per-selection','data-fr-words-per-selection','Words per selection:5');
+        let speedCounter = DOMHelper.createElement("div","fr-speed-counter","Reading speed:2000wpm");
+        speedBlock.appendChild(speedCounter);
+        let speedMeterBtnBlock = this.createSpeedButtonsElement("fr-speed");
+        speedBlock.appendChild(speedMeterBtnBlock);
+
+        let wordsPerSelection = DOMHelper.createElement('div','fr-words-per-selection','Words per selection:5');
         speedBlock.appendChild(wordsPerSelection);
-        let wordsUp = DOMHelper.createElement('button','fr-words-speed-up','data-fr-words-speed-up','up');
-        let wordsDown = DOMHelper.createElement('button','fr-words-speed-down','data-fr-words-speed-down','down');
-        speedBlock.appendChild(wordsUp);
-        speedBlock.appendChild(wordsDown);
- 
-        let pauseBtn = DOMHelper.createElement('button','fr-pause-button','data-fr-pause-button','Play');
+        let wordsPerSelectionBtnBlock = this.createSpeedButtonsElement("fr-words-speed");
+        speedBlock.appendChild(wordsPerSelectionBtnBlock);
+        // let wordsUp = DOMHelper.createElement('button','fr-words-speed-up','up');
+        // let wordsDown = DOMHelper.createElement('button','fr-words-speed-down','down');
+        // speedBlock.appendChild(wordsUp);
+        // speedBlock.appendChild(wordsDown);
+
+        let pauseBtn = DOMHelper.createElement('button','fr-pause-button','Play');
         menu.appendChild(pauseBtn);
-        let statistics = DOMHelper.createElement("div","fr-statistics","data-fr-statistics");
+        let statistics = DOMHelper.createElement("div","fr-statistics");
         menu.appendChild(statistics);
 
 
 
-        let timeToReadTotal = DOMHelper.createElement('div','fr-time-to-read-total','fr-time-to-read-total');
+        let timeToReadTotal = DOMHelper.createElement('div','fr-time-to-read-total');
         statistics.appendChild(timeToReadTotal);
 
-        let timeToReadRemaiming = DOMHelper.createElement('div','fr-time-to-read-remaining','fr-time-to-read-remaining','Remaining time');
+        let timeToReadRemaiming = DOMHelper.createElement('div','fr-time-to-read-remaining','Remaining time');
         statistics.appendChild(timeToReadRemaiming);
 
-        let totalCharatersCount = DOMHelper.createElement('div','fr-total-characters-count','fr-total-characters-count','Total characters: 00');
+        let totalCharatersCount = DOMHelper.createElement('div','fr-total-characters-count','Total characters: 00');
         statistics.appendChild(totalCharatersCount);
 
-        let exitBtn = DOMHelper.createElement("button","fr-exit-btn","data-fr-exitBtn","exit");
+        let exitBtn = DOMHelper.createElement("button","fr-exit-btn","exit");
         menu.appendChild(exitBtn);
 
         // // exitBtn.addEventListener("click",controller.getClickExitCallback(),{"once":"true"});
         // document.addEventListener("keydown",controller.getescapeExitCallback(),{"once":"true"});
         return menuContainer;
     }
-
+    createSpeedButtonsElement(className){
+        let speedButtonsContainer = DOMHelper.createElement("div","fr-speed-buttons-container");
+        let up = DOMHelper.createElement('button',className+'-up','&#x2B06');
+        let down = DOMHelper.createElement('button',className+'-down','&#x2B07');
+        speedButtonsContainer.appendChild(up);
+        speedButtonsContainer.appendChild(down);
+        return speedButtonsContainer;
+    }
     createMainContainer(){
-        let mainContainer = DOMHelper.createFRElement("div","fr-main-container","data-fr-main-container");
-        let textContainer = DOMHelper.createFRElement("div","fr-text-container","data-fr-text-container");
+        let mainContainer = DOMHelper.createFRElement("div","fr-main-container");
+        let textContainer = DOMHelper.createFRElement("div","fr-text-container");
         mainContainer.appendChild(textContainer);
         let menu = this.createMenu();
         mainContainer.appendChild(menu);
@@ -1142,25 +1162,24 @@ class ViewManager{
         this.setTextElement(textElt);
         this.showReadingScreen();
         DOMHelper.createOverlay();   
-        
         this.createReader();
         this.reader.init();
     }
     
     attachEventListeners(){
-        const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
+        const exitBtn = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.exitButtonName));
         console.log(this.mainContainerElt);
         exitBtn.addEventListener('click',this.controller.getClickExitCallback());
         document.addEventListener('keydown',this.controller.getEscapeExitCallback());
     }
 
     createStatBlock(){
-        let statElt = this.mainContainerElt.querySelector('[data-fr-menu]');
+        let statElt = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.menuName));
         this.statBlock = new Statistics(this, statElt);
     }
 
     createReader(){
-        this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector('[data-fr-text-container]'));
+        this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)));
         // this.reader.test();
     }
 
@@ -1174,7 +1193,7 @@ class ViewManager{
 
     clean(){
         DOMHelper.activeFlag = false;
-        const exitBtn = this.mainContainerElt.querySelector('[data-fr-exitBtn]');
+        const exitBtn = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.exitButtonName));
         exitBtn.removeEventListener('click',this.controller.getClickExitCallback());
         document.removeEventListener('keydown',this.controller.getEscapeExitCallback());
         this.reader.clean();       
@@ -1188,7 +1207,7 @@ class ViewManager{
     }
 
     setTextElement(textElt){
-        let textContainer = this.mainContainerElt.querySelector('[data-fr-text-container]');
+        let textContainer = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName));
 
         textContainer.appendChild(textElt);
     }
@@ -1350,9 +1369,9 @@ class WordRunner{
 var styleCSS = `.launch_button{
     position:fixed;
     top:70px;
-    left:1750px;
+    right:30px;
     z-index: 100000;
-    
+    opacity: .5;
     font-size:18px;
     background-color:#f5f5f5;
     background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
@@ -1369,6 +1388,7 @@ var styleCSS = `.launch_button{
     text-decoration: none;
     background-image: linear-gradient(to bottom, #ffffff, #b8b8b8);
     background-color: #b8b8b8 ;
+    opacity: 1;
     
     }
     .launch_button:active{
@@ -1392,6 +1412,7 @@ var styleCSS = `.launch_button{
     margin-left: auto;
     margin-right: auto;
     }
+
     .fr-menu-container{
     position:fixed;
     top: 0;
@@ -1399,7 +1420,9 @@ var styleCSS = `.launch_button{
     width:100%;
     background:#c4c4c4;
     z-index: 200000;
+    font-size: 16px;
     }
+
     .fr-menu{
     color:black;
     font-family: Arial, Helvetica, sans-serif;
@@ -1424,7 +1447,19 @@ var styleCSS = `.launch_button{
         border: solid white 1px;
     }
 
+    .fr-menu .fr-pause-button{
+        padding: 1px 24px;
+        /* font-size: 24px; */
+        /* height: 55px; */
+    }
+
+
     .fr-speed-block{
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .fr-speed-buttons-container{
         display: inline-block;
         vertical-align: top;
     }
@@ -1433,6 +1468,10 @@ var styleCSS = `.launch_button{
     display:inline-block;
     vertical-align: top;
     /* width:300px; */
+    }
+
+    .fr-speed-block button{
+        display: block;
     }
 
 
@@ -1447,6 +1486,7 @@ var styleCSS = `.launch_button{
 
     .fr-words-per-selection{
         display: inline-block;
+        vertical-align: top;
     }
 
 

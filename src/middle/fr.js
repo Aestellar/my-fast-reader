@@ -1,9 +1,9 @@
 var styleCSS = `.launch_button{
     position:fixed;
     top:70px;
-    left:1750px;
+    right:30px;
     z-index: 100000;
-    
+    opacity: .5;
     font-size:18px;
     background-color:#f5f5f5;
     background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
@@ -20,6 +20,7 @@ var styleCSS = `.launch_button{
     text-decoration: none;
     background-image: linear-gradient(to bottom, #ffffff, #b8b8b8);
     background-color: #b8b8b8 ;
+    opacity: 1;
     
     }
     .launch_button:active{
@@ -43,6 +44,7 @@ var styleCSS = `.launch_button{
     margin-left: auto;
     margin-right: auto;
     }
+
     .fr-menu-container{
     position:fixed;
     top: 0;
@@ -50,7 +52,9 @@ var styleCSS = `.launch_button{
     width:100%;
     background:#c4c4c4;
     z-index: 200000;
+    font-size: 16px;
     }
+
     .fr-menu{
     color:black;
     font-family: Arial, Helvetica, sans-serif;
@@ -75,7 +79,19 @@ var styleCSS = `.launch_button{
         border: solid white 1px;
     }
 
+    .fr-menu .fr-pause-button{
+        padding: 1px 24px;
+        /* font-size: 24px; */
+        /* height: 55px; */
+    }
+
+
     .fr-speed-block{
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .fr-speed-buttons-container{
         display: inline-block;
         vertical-align: top;
     }
@@ -84,6 +100,10 @@ var styleCSS = `.launch_button{
     display:inline-block;
     vertical-align: top;
     /* width:300px; */
+    }
+
+    .fr-speed-block button{
+        display: block;
     }
 
 
@@ -98,6 +118,7 @@ var styleCSS = `.launch_button{
 
     .fr-words-per-selection{
         display: inline-block;
+        vertical-align: top;
     }
 
 
