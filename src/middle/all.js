@@ -1,3 +1,30 @@
+class Book{
+
+    constructor(textElt){
+        this.textElt = textElt;
+    }
+
+    init(){
+        TextProcessor.formatText(this.textElt);
+        let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
+        let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
+        this.wordList = Word.createWordList(indexedWordList);
+        
+    }
+
+    getTotalCharactersCount() {
+        // return this.book.getTotalCharactersCount();
+
+        let lastWord = this.wordList[this.wordList.length - 1];
+        console.assert(lastWord);
+        const count = lastWord.getPreviousLength() + lastWord.getLength();
+        return count;
+    }
+
+    getWord(index){
+        return this.wordList[index];
+    }
+}
 class Chapter{
 
     // constructor(firstTitleElement,lastTitleElement,chapterIndex){
@@ -166,6 +193,15 @@ class DOMHelper {
 
     static isActive(){
         return this.activeFlag;
+    }
+
+
+    static cloneMainTextElt(el) {
+        let newElt = el.cloneNode(true);
+        newElt.classList.remove('no_scroll_hide');
+        // let textContainer = document.querySelector("[data-fr-text-container]");
+        return newElt;
+        //textContainer.appendChild(newElt);
     }
 
     static applyStyle(styleCSS){
@@ -388,7 +424,7 @@ static getOrderedNodeList(element,options) {
                 excludeFlag = excludeFlag||cNode.parentElement.style.display === "none";
             }
 
-            excludesList.includes(cNode.nodeName);
+            // excludesList.includes(cNode.nodeName);
             if (cNode.childNodes.length > 0 && !excludeFlag) {
                 pathArray.push(cNode);                
                 cNode = cNode.childNodes[0];
@@ -526,55 +562,24 @@ class FRController{
 }
 class Reader {
 
-
-    constructor(viewManager, statistics, textElt) {
+    constructor(viewManager, statistics, book) {
         this.vm = viewManager;
         this.statistics = statistics;
-        this.textElt = textElt;
-        this.playBtn;
+        this.book = book;
+        // this.textElt = textElt;
         this.playFlag = false;
         this.currentWord;
         this.timeout;
-        this.pauseCallbackBinded = this.pauseCallback.bind(this);
-        this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
-        this.selectWordBehindOverlayCallbackBinded = this.selectWordBehindOverlayCallback.bind(this);
         this.startWordIndex = 0;
+        this.readerController = new ReaderController(this);
     }
-
 
     init() {
-        this.playBtn = document.querySelector('[data-fr-pause-button]');
-        DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
-        DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
+        this.readerController.init();
 
-
-        TextProcessor.formatText(this.textElt);
-
-        // TextProcessor.splitToPages(this.textElt);
-        let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
-        let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
-        this.wordList = Word.createWordList(indexedWordList);
-        // this.chapterList = Chapter.splitWordListToChapters(this.wordList);
-        // this.chapterList = Chapter.splitEltToChapters(this.textElt, this.wordList);
-        // this.currentChapter = null;
-        const count = this.getTotalCharactersCount();
+        const count = this.book.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
-
-        this.spaceCallback = this.playCallback.bind(this);
-        document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
-        //TODO Chapters
-        // let chapters = document.querySelectorAll('.fr-chapter');
-        // console.log(chapters);
-
-    }
-
-    getTotalCharactersCount() {
-        let lastWord = this.wordList[this.wordList.length - 1];
-        console.assert(lastWord);
-        const count = lastWord.getPreviousLength() + lastWord.getLength();
-        return count;
     }
 
     updateTotalTimeStatistics(count) {
@@ -585,55 +590,19 @@ class Reader {
         this.statistics.updateRemainingCharactersCount(count);
     }
 
-    selectWordCallback(e) {
-        let index = DOMHelper.getIndexFromWordElement(e.target);
-        if(index){
-            this.selectWord(index);
-        }
-    }
-
-    selectWordBehindOverlayCallback(e){
-        console.log('Overlay callback');
-        let wordElt = DOMHelper.getElementByCoordinates(e.clientX, e.clientY,"fr-word");
-        if(wordElt){
-            let index = DOMHelper.getIndexFromWordElement(wordElt);
-            this.selectWord(index);
-        }
+    getWord(index){
+        return this.book.getWord(index);
     }
 
     selectWord(index){
         if(this.currentWord){
             this.currentWord.unmark();
         }
-        this.currentWord = this.wordList[index];
+        this.currentWord = this.getWord(index);
         this.currentWord.mark();
         console.log(this.currentWord,index);
     }
 
-    playCallback(e) {
-        console.log('Pressed key:' + e.key);
-
-        if (e.key === "Control") {
-            this.playBtn.click();
-            e.preventDefault();
-        }
-    }
-
-
-    // TODO Remove event binding with Play Button
-    pauseCallback(e) {
-        if (this.isPlaying()) {
-            console.log('Paused');
-            this.pause();
-            if (e) { e.target.innerHTML = 'Play' };
-        }
-        else {
-            console.log('Playing');
-            this.play();
-            this.updatePlaying();
-            if (e) { e.target.innerHTML = 'Pause' };
-        }
-    }
 
     isPlaying() {
         return this.playFlag;
@@ -656,16 +625,14 @@ class Reader {
     }
 
     clean() {
-        DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
-        DOMHelper.removeClickEventS('[data-fr-overlay]',this.selectWordBehindOverlayCallbackBinded);
-        document.removeEventListener('keydown', this.spaceCallback, true);
+        this.readerController.clean();
         this.playFlag = false;
     }
 
     updatePlaying() {
         let playingFlag = this.isPlaying();
         let speed = 300;
+
         if (this.currentWord) {
             speed = this.calculateSpeed();
         }
@@ -678,13 +645,11 @@ class Reader {
                 clearTimeout(this.timeout);
                 this.timeout = setTimeout(this.loop.bind(this), speed);
             }
-
-
         }
     }
 
     loop() {
-        console.log('Reading');
+        // console.log('Reading');
         let loopWord = this.currentWord;
         if (loopWord) {
             loopWord.unmark();
@@ -700,7 +665,6 @@ class Reader {
         else {
             loopWord.mark();
             this.updateRemainigTimeStatistics(loopWord.getNextLength());
-            // console.log(loopWord);
             this.updatePlaying();
         }
     }
@@ -709,12 +673,12 @@ class Reader {
         let nextWord;
         let index = 0;
         if (loopWord == null) {
-            nextWord = this.wordList[index];
+            nextWord = this.getWord(index);
         }
         else {
             //console.log("loop Element",loopElement,loopElement.getAttribute('data-fr-word-index'));
             index = loopWord.extractIndex();
-            nextWord = this.wordList[index + 1];
+            nextWord = this.getWord(index + 1);
         }
         return nextWord;
     }
@@ -732,12 +696,6 @@ class Reader {
         return speed;
     }
 
-    // test() {
-    //     console.assert(this.vm != undefined);
-    //     console.assert(this.statistics != undefined);
-    //     console.assert(this.textElt != undefined);
-    // }
-
     save() {
         if(this.currentWord){
         const currentIndex = this.currentWord.extractIndex();
@@ -747,9 +705,77 @@ class Reader {
 
     load() {
         let index = StorageManager.loadLastWord();
-        this.currentWord = this.wordList[index];
+        this.currentWord = this.getWord(index);
         this.currentWord.mark();
     }
+
+}
+class ReaderController{
+
+constructor(reader){
+    this.reader = reader;
+    this.playBtn;              
+    this.pauseCallbackBinded = this.pauseCallback.bind(this);
+    this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
+    this.selectWordBehindOverlayCallbackBinded = this.selectWordBehindOverlayCallback.bind(this);
+}
+
+
+init(){
+    this.playBtn = document.querySelector('[data-fr-pause-button]');
+    DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
+    DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
+    DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
+    this.spaceCallback = this.playCallback.bind(this);
+    document.addEventListener('keyup', this.spaceCallback, true);
+}
+
+clean(){
+    DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
+    DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
+    DOMHelper.removeClickEventS('[data-fr-overlay]',this.selectWordBehindOverlayCallbackBinded);
+    document.removeEventListener('keydown', this.spaceCallback, true);
+}
+
+selectWordCallback(e) {
+    let index = DOMHelper.getIndexFromWordElement(e.target);
+    if(index){
+        this.reader.selectWord(index);
+    }
+}
+
+selectWordBehindOverlayCallback(e){
+    console.log('Overlay callback');
+    let wordElt = DOMHelper.getElementByCoordinates(e.clientX, e.clientY,"fr-word");
+    if(wordElt){
+        let index = DOMHelper.getIndexFromWordElement(wordElt);
+        this.reader.selectWord(index);
+    }
+}
+
+playCallback(e) {
+    console.log('Pressed key:' + e.key);
+
+    if (e.key === "Control") {
+        this.playBtn.click();
+        e.preventDefault();
+    }
+}
+
+// TODO Remove event binding with Play Button
+pauseCallback(e) {
+    if (this.reader.isPlaying()) {
+        console.log('Paused');
+        this.reader.pause();
+        if (e) { e.target.innerHTML = 'Play' };
+    }
+    else {
+        console.log('Playing');
+        this.reader.play();
+        this.reader.updatePlaying();
+        if (e) { e.target.innerHTML = 'Pause' };
+    }
+}
 
 }
 class Statistics {
@@ -956,13 +982,7 @@ static readingModecallback;
 }
 class TextProcessor {
 
-    static processText(el) {
-        let newElt = el.cloneNode(true);
-        newElt.classList.remove('no_scroll_hide');
-        // let textContainer = document.querySelector("[data-fr-text-container]");
-        return newElt;
-        //textContainer.appendChild(newElt);
-    }
+
 
     static encapsulateBodyText() {
         console.log("Encapsulate started");
@@ -1157,11 +1177,15 @@ class ViewManager{
         DOMHelper.activeFlag = true;
         DOMHelper.hidePage();
     
-        let textElt = TextProcessor.processText(textElement);
+        let textElt = DOMHelper.cloneMainTextElt(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
         DOMHelper.createOverlay();   
-        this.createReader();
+
+        let book = new Book(this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)));
+        book.init();
+        //this.reader = new Reader(this, this.statBlock,this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)), book);
+        this.reader = new Reader(this, this.statBlock, book);
         this.reader.init();
     }
     
@@ -1175,11 +1199,6 @@ class ViewManager{
     createStatBlock(){
         let statElt = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.menuName));
         this.statBlock = new Statistics(this, statElt);
-    }
-
-    createReader(){
-        this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)));
-        // this.reader.test();
     }
 
 

@@ -1,12 +1,6 @@
 class TextProcessor {
 
-    static processText(el) {
-        let newElt = el.cloneNode(true);
-        newElt.classList.remove('no_scroll_hide');
-        // let textContainer = document.querySelector("[data-fr-text-container]");
-        return newElt;
-        //textContainer.appendChild(newElt);
-    }
+
 
     static encapsulateBodyText() {
         console.log("Encapsulate started");

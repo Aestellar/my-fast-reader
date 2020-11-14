@@ -6,6 +6,15 @@ class DOMHelper {
         return this.activeFlag;
     }
 
+
+    static cloneMainTextElt(el) {
+        let newElt = el.cloneNode(true);
+        newElt.classList.remove('no_scroll_hide');
+        // let textContainer = document.querySelector("[data-fr-text-container]");
+        return newElt;
+        //textContainer.appendChild(newElt);
+    }
+
     static applyStyle(styleCSS){
         let styleElt = document.createElement("style");
         styleElt.innerHTML = styleCSS;
@@ -226,7 +235,7 @@ static getOrderedNodeList(element,options) {
                 excludeFlag = excludeFlag||cNode.parentElement.style.display === "none";
             }
 
-            excludesList.includes(cNode.nodeName);
+            // excludesList.includes(cNode.nodeName);
             if (cNode.childNodes.length > 0 && !excludeFlag) {
                 pathArray.push(cNode);                
                 cNode = cNode.childNodes[0];

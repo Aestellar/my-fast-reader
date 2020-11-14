@@ -24,11 +24,15 @@ class ViewManager{
         DOMHelper.activeFlag = true;
         DOMHelper.hidePage();
     
-        let textElt = TextProcessor.processText(textElement);
+        let textElt = DOMHelper.cloneMainTextElt(textElement);
         this.setTextElement(textElt);
         this.showReadingScreen();
         DOMHelper.createOverlay();   
-        this.createReader();
+
+        let book = new Book(this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)));
+        book.init();
+        //this.reader = new Reader(this, this.statBlock,this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)), book);
+        this.reader = new Reader(this, this.statBlock, book);
         this.reader.init();
     }
     
@@ -42,11 +46,6 @@ class ViewManager{
     createStatBlock(){
         let statElt = this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.menuName));
         this.statBlock = new Statistics(this, statElt);
-    }
-
-    createReader(){
-        this.reader = new Reader(this,this.statBlock,this.mainContainerElt.querySelector(DOMHelper.nameToSelector(Constants.textContainerName)));
-        // this.reader.test();
     }
 
 

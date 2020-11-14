@@ -1,54 +1,23 @@
 class Reader {
 
-
-    constructor(viewManager, statistics, textElt) {
+    constructor(viewManager, statistics, book) {
         this.vm = viewManager;
         this.statistics = statistics;
-        this.textElt = textElt;
-        this.playBtn;
+        this.book = book;
+        // this.textElt = textElt;
         this.playFlag = false;
         this.currentWord;
         this.timeout;
-        this.pauseCallbackBinded = this.pauseCallback.bind(this);
-        this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
-        this.selectWordBehindOverlayCallbackBinded = this.selectWordBehindOverlayCallback.bind(this);
         this.startWordIndex = 0;
+        this.readerController = new ReaderController(this);
     }
-
 
     init() {
-        this.playBtn = document.querySelector('[data-fr-pause-button]');
-        DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
-        DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
+        this.readerController.init();
 
-
-        TextProcessor.formatText(this.textElt);
-
-        // TextProcessor.splitToPages(this.textElt);
-        let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
-        let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
-        this.wordList = Word.createWordList(indexedWordList);
-        // this.chapterList = Chapter.splitWordListToChapters(this.wordList);
-        // this.chapterList = Chapter.splitEltToChapters(this.textElt, this.wordList);
-        // this.currentChapter = null;
-        const count = this.getTotalCharactersCount();
+        const count = this.book.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
-
-        this.spaceCallback = this.playCallback.bind(this);
-        document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
-        //TODO Chapters
-        // let chapters = document.querySelectorAll('.fr-chapter');
-        // console.log(chapters);
-
-    }
-
-    getTotalCharactersCount() {
-        let lastWord = this.wordList[this.wordList.length - 1];
-        console.assert(lastWord);
-        const count = lastWord.getPreviousLength() + lastWord.getLength();
-        return count;
     }
 
     updateTotalTimeStatistics(count) {
@@ -59,55 +28,19 @@ class Reader {
         this.statistics.updateRemainingCharactersCount(count);
     }
 
-    selectWordCallback(e) {
-        let index = DOMHelper.getIndexFromWordElement(e.target);
-        if(index){
-            this.selectWord(index);
-        }
-    }
-
-    selectWordBehindOverlayCallback(e){
-        console.log('Overlay callback');
-        let wordElt = DOMHelper.getElementByCoordinates(e.clientX, e.clientY,"fr-word");
-        if(wordElt){
-            let index = DOMHelper.getIndexFromWordElement(wordElt);
-            this.selectWord(index);
-        }
+    getWord(index){
+        return this.book.getWord(index);
     }
 
     selectWord(index){
         if(this.currentWord){
             this.currentWord.unmark();
         }
-        this.currentWord = this.wordList[index];
+        this.currentWord = this.getWord(index);
         this.currentWord.mark();
         console.log(this.currentWord,index);
     }
 
-    playCallback(e) {
-        console.log('Pressed key:' + e.key);
-
-        if (e.key === "Control") {
-            this.playBtn.click();
-            e.preventDefault();
-        }
-    }
-
-
-    // TODO Remove event binding with Play Button
-    pauseCallback(e) {
-        if (this.isPlaying()) {
-            console.log('Paused');
-            this.pause();
-            if (e) { e.target.innerHTML = 'Play' };
-        }
-        else {
-            console.log('Playing');
-            this.play();
-            this.updatePlaying();
-            if (e) { e.target.innerHTML = 'Pause' };
-        }
-    }
 
     isPlaying() {
         return this.playFlag;
@@ -130,16 +63,14 @@ class Reader {
     }
 
     clean() {
-        DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
-        DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
-        DOMHelper.removeClickEventS('[data-fr-overlay]',this.selectWordBehindOverlayCallbackBinded);
-        document.removeEventListener('keydown', this.spaceCallback, true);
+        this.readerController.clean();
         this.playFlag = false;
     }
 
     updatePlaying() {
         let playingFlag = this.isPlaying();
         let speed = 300;
+
         if (this.currentWord) {
             speed = this.calculateSpeed();
         }
@@ -152,13 +83,11 @@ class Reader {
                 clearTimeout(this.timeout);
                 this.timeout = setTimeout(this.loop.bind(this), speed);
             }
-
-
         }
     }
 
     loop() {
-        console.log('Reading');
+        // console.log('Reading');
         let loopWord = this.currentWord;
         if (loopWord) {
             loopWord.unmark();
@@ -174,7 +103,6 @@ class Reader {
         else {
             loopWord.mark();
             this.updateRemainigTimeStatistics(loopWord.getNextLength());
-            // console.log(loopWord);
             this.updatePlaying();
         }
     }
@@ -183,12 +111,12 @@ class Reader {
         let nextWord;
         let index = 0;
         if (loopWord == null) {
-            nextWord = this.wordList[index];
+            nextWord = this.getWord(index);
         }
         else {
             //console.log("loop Element",loopElement,loopElement.getAttribute('data-fr-word-index'));
             index = loopWord.extractIndex();
-            nextWord = this.wordList[index + 1];
+            nextWord = this.getWord(index + 1);
         }
         return nextWord;
     }
@@ -206,12 +134,6 @@ class Reader {
         return speed;
     }
 
-    // test() {
-    //     console.assert(this.vm != undefined);
-    //     console.assert(this.statistics != undefined);
-    //     console.assert(this.textElt != undefined);
-    // }
-
     save() {
         if(this.currentWord){
         const currentIndex = this.currentWord.extractIndex();
@@ -221,7 +143,7 @@ class Reader {
 
     load() {
         let index = StorageManager.loadLastWord();
-        this.currentWord = this.wordList[index];
+        this.currentWord = this.getWord(index);
         this.currentWord.mark();
     }
 
