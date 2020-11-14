@@ -44,9 +44,16 @@ class TextProcessor {
     }
 
     static embraceWords(wordList) {
-        wordList.forEach((word, i, array) => {
-            array[i] = `<span class="fr-word"> ${word}</span>`;
+
+
+       let embracedWords =  wordList.map((word, i, array) => {
+            let newSpan = document.createElement("span");
+            newSpan.classList.add('fr-word');
+            newSpan.textContent = word+' ';
+            return newSpan;
+            //array[i] = `<span class="fr-word"> ${word}</span>`;
         });
+        return embracedWords;
     }
 
     static parseWords(string) {
@@ -59,16 +66,20 @@ class TextProcessor {
             return false;
         });
         // console.log(wordsArr)
-        TextProcessor.embraceWords(wordList);
+        let embracedWordList = TextProcessor.embraceWords(wordList);
 
-        let newString = wordList.join(' ');
-        let newSpan = document.createElement("span");
-        newSpan.classList.add('fr-sentence');
-        if(newString.search("Глава")!=-1){
-            newSpan.classList.add('fr-chapter');
+        // let newString = wordList.join(' ');
+        let sentenceElt = document.createElement("span");
+        sentenceElt.classList.add('fr-sentence');
+        if(string.search("Глава")!=-1){
+            sentenceElt.classList.add('fr-chapter');
         }
-        newSpan.innerHTML = newString;
-        return newSpan;
+        embracedWordList.forEach((elt)=>{
+           sentenceElt.appendChild(elt); 
+        });
+
+        // sentenceElt.textContent = newString;
+        return sentenceElt;
     }
 
     static formatText(textElt) {

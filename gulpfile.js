@@ -74,7 +74,7 @@ gulp.task('copyToClipboard',()=>{
 gulp.task('build',gulp.series('concatPre','mergecss','wrapcss','cssrename','buildjs','copyToClipboard'));
 
 gulp.task('watch',()=>{
-    return gulp.watch('./src/js/*.js',gulp.series('build'));
+    return gulp.watch(['./src/js/*.js','./src/css/*.css'],gulp.series('build'));
 });
 
 let userscriptHeader = `// ==UserScript==

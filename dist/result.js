@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1 Wed Nov 11 2020 00:39:33 GMT+0300 (RTZ 2 (зима))
+// @version      0.1 Fri Nov 13 2020 13:08:26 GMT+0300 (RTZ 2 (зима))
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -398,14 +398,15 @@ static getOrderedNodeList(element,options) {
             //     textArray.push(cNode.nodeValue);
             // }
             resultNodeList.push(cNode);
-            let excludesFlag = false;
+            let excludeFlag = false;
 
             if(cNode.nodeType ===1 && excludesList.length>0){
-                excludesFlag = excludesList.includes(cNode.nodeName);
+                excludeFlag = excludesList.includes(cNode.nodeName);
+                excludeFlag = excludeFlag||cNode.parentElement.style.display === "none";
             }
 
             excludesList.includes(cNode.nodeName);
-            if (cNode.childNodes.length > 0 && !excludesFlag) {
+            if (cNode.childNodes.length > 0 && !excludeFlag) {
                 pathArray.push(cNode);                
                 cNode = cNode.childNodes[0];
             }
@@ -577,7 +578,7 @@ class Reader {
         const count = this.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
 
-        this.spaceCallback = this.spaceCallbackFunction.bind(this);
+        this.spaceCallback = this.playCallback.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
         //TODO Chapters
@@ -618,13 +619,15 @@ class Reader {
     }
 
     selectWord(index){
-        this.currentWord.unmark();
+        if(this.currentWord){
+            this.currentWord.unmark();
+        }
         this.currentWord = this.wordList[index];
         this.currentWord.mark();
         console.log(this.currentWord,index);
     }
 
-    spaceCallbackFunction(e) {
+    playCallback(e) {
         console.log('Pressed key:' + e.key);
 
         if (e.key === "Control") {
@@ -753,8 +756,10 @@ class Reader {
     // }
 
     save() {
+        if(this.currentWord){
         const currentIndex = this.currentWord.extractIndex();
         StorageManager.saveLastWord(currentIndex);
+        }
     }
 
     load() {
@@ -1012,9 +1017,16 @@ class TextProcessor {
     }
 
     static embraceWords(wordList) {
-        wordList.forEach((word, i, array) => {
-            array[i] = `<span class="fr-word"> ${word}</span>`;
+
+
+       let embracedWords =  wordList.map((word, i, array) => {
+            let newSpan = document.createElement("span");
+            newSpan.classList.add('fr-word');
+            newSpan.textContent = word+' ';
+            return newSpan;
+            //array[i] = `<span class="fr-word"> ${word}</span>`;
         });
+        return embracedWords;
     }
 
     static parseWords(string) {
@@ -1027,16 +1039,20 @@ class TextProcessor {
             return false;
         });
         // console.log(wordsArr)
-        TextProcessor.embraceWords(wordList);
+        let embracedWordList = TextProcessor.embraceWords(wordList);
 
-        let newString = wordList.join(' ');
-        let newSpan = document.createElement("span");
-        newSpan.classList.add('fr-sentence');
-        if(newString.search("Глава")!=-1){
-            newSpan.classList.add('fr-chapter');
+        // let newString = wordList.join(' ');
+        let sentenceElt = document.createElement("span");
+        sentenceElt.classList.add('fr-sentence');
+        if(string.search("Глава")!=-1){
+            sentenceElt.classList.add('fr-chapter');
         }
-        newSpan.innerHTML = newString;
-        return newSpan;
+        embracedWordList.forEach((elt)=>{
+           sentenceElt.appendChild(elt); 
+        });
+
+        // sentenceElt.textContent = newString;
+        return sentenceElt;
     }
 
     static formatText(textElt) {

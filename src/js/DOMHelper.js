@@ -219,14 +219,15 @@ static getOrderedNodeList(element,options) {
             //     textArray.push(cNode.nodeValue);
             // }
             resultNodeList.push(cNode);
-            let excludesFlag = false;
+            let excludeFlag = false;
 
             if(cNode.nodeType ===1 && excludesList.length>0){
-                excludesFlag = excludesList.includes(cNode.nodeName);
+                excludeFlag = excludesList.includes(cNode.nodeName);
+                excludeFlag = excludeFlag||cNode.parentElement.style.display === "none";
             }
 
             excludesList.includes(cNode.nodeName);
-            if (cNode.childNodes.length > 0 && !excludesFlag) {
+            if (cNode.childNodes.length > 0 && !excludeFlag) {
                 pathArray.push(cNode);                
                 cNode = cNode.childNodes[0];
             }

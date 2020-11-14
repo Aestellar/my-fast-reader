@@ -35,7 +35,7 @@ class Reader {
         const count = this.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
 
-        this.spaceCallback = this.spaceCallbackFunction.bind(this);
+        this.spaceCallback = this.playCallback.bind(this);
         document.addEventListener('keyup', this.spaceCallback, true);
         this.load();
         //TODO Chapters
@@ -76,13 +76,15 @@ class Reader {
     }
 
     selectWord(index){
-        this.currentWord.unmark();
+        if(this.currentWord){
+            this.currentWord.unmark();
+        }
         this.currentWord = this.wordList[index];
         this.currentWord.mark();
         console.log(this.currentWord,index);
     }
 
-    spaceCallbackFunction(e) {
+    playCallback(e) {
         console.log('Pressed key:' + e.key);
 
         if (e.key === "Control") {
@@ -211,8 +213,10 @@ class Reader {
     // }
 
     save() {
+        if(this.currentWord){
         const currentIndex = this.currentWord.extractIndex();
         StorageManager.saveLastWord(currentIndex);
+        }
     }
 
     load() {
