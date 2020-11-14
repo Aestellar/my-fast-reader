@@ -4,12 +4,11 @@ class Reader {
         this.vm = viewManager;
         this.statistics = statistics;
         this.book = book;
-        // this.textElt = textElt;
         this.playFlag = false;
         this.currentWord;
         this.timeout;
-        this.startWordIndex = 0;
         this.readerController = new ReaderController(this);
+        this.wordRunner = new WordRunner(this);
     }
 
     init() {
@@ -28,17 +27,14 @@ class Reader {
         this.statistics.updateRemainingCharactersCount(count);
     }
 
-    getWord(index){
+    getWord(index) {
         return this.book.getWord(index);
     }
 
-    selectWord(index){
-        if(this.currentWord){
-            this.currentWord.unmark();
-        }
-        this.currentWord = this.getWord(index);
-        this.currentWord.mark();
-        console.log(this.currentWord,index);
+    selectWord(index) {
+        let selectedWord = this.getWord(index);
+        this.wordRunner.selectWord(this.currentWord, selectedWord);
+        this.currentWord = selectedWord;
     }
 
 
@@ -48,6 +44,7 @@ class Reader {
 
     pause() {
         this.playFlag = false;
+        this.readerController.displayPause(true);
         clearTimeout(this.timeout);
         this.save();
         DOMHelper.hideOverlay();
@@ -59,6 +56,7 @@ class Reader {
             return;
         }
         this.playFlag = true;
+        this.readerController.displayPause(false);
         DOMHelper.showOverlay();
     }
 
@@ -87,64 +85,56 @@ class Reader {
     }
 
     loop() {
-        // console.log('Reading');
-        let loopWord = this.currentWord;
-        if (loopWord) {
-            loopWord.unmark();
-        }
-
-        loopWord = this.nextWord(loopWord);
-
-        this.currentWord = loopWord;
-        if (!loopWord) {
-            this.pause();
-            console.log('No next word');
-        }
-        else {
-            loopWord.mark();
-            this.updateRemainigTimeStatistics(loopWord.getNextLength());
+        if (!this.currentWord) {
+            this.selectWord(0);
+            this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
             this.updatePlaying();
         }
+
+        else {
+
+            let nextWord = this.book.nextWord(this.currentWord.extractIndex());
+            if (!nextWord) {
+                this.wordRunner.resetSelection(this.currentWord);
+                this.currentWord = null;
+                this.pause();
+                console.log('No next word');
+            }
+            else {
+                this.selectWord(nextWord.extractIndex());
+                this.currentWord = nextWord;
+                this.updateRemainigTimeStatistics(nextWord.getNextLength());
+                this.updatePlaying();
+            }
+        }
     }
 
-    nextWord(loopWord) {
-        let nextWord;
-        let index = 0;
-        if (loopWord == null) {
-            nextWord = this.getWord(index);
-        }
-        else {
-            //console.log("loop Element",loopElement,loopElement.getAttribute('data-fr-word-index'));
-            index = loopWord.extractIndex();
-            nextWord = this.getWord(index + 1);
-        }
-        return nextWord;
-    }
 
     calculateSpeed() {
         let speed = this.statistics.getSpeed(this.currentWord.getLength());
-        let now = Date.now();
-        let lastDate = this.lastDate ? this.lastDate : now;
-        let timeDelta = now - lastDate;
-        speed -= timeDelta;
-        if (speed < 0) {
-            speed = 0;
-        }
+        // let now = Date.now();
+        // let lastDate = this.lastDate ? this.lastDate : now;
+        // let timeDelta = now - lastDate;
+        // speed -= timeDelta;
+        // if (speed < 0) {
+        //     speed = 0;
+        // }
         // console.log("Timeout for word", this.currentWord, speed);
         return speed;
     }
 
     save() {
-        if(this.currentWord){
-        const currentIndex = this.currentWord.extractIndex();
-        StorageManager.saveLastWord(currentIndex);
+        if (this.currentWord) {
+            const currentIndex = this.currentWord.extractIndex();
+            StorageManager.saveLastWord(currentIndex);
         }
     }
 
     load() {
         let index = StorageManager.loadLastWord();
-        this.currentWord = this.getWord(index);
-        this.currentWord.mark();
+        this.selectWord(index);
+        // this.currentWord = this.getWord(index);
+        // this.currentWord.mark();
     }
 
 }

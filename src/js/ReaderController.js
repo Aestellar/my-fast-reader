@@ -27,7 +27,7 @@ clean(){
 
 selectWordCallback(e) {
     let index = DOMHelper.getIndexFromWordElement(e.target);
-    if(index){
+    if(Number.isInteger(index)){
         this.reader.selectWord(index);
     }
 }
@@ -55,13 +55,24 @@ pauseCallback(e) {
     if (this.reader.isPlaying()) {
         console.log('Paused');
         this.reader.pause();
-        if (e) { e.target.innerHTML = 'Play' };
+        this.displayPause(true);
+        // if (e) { e.target.innerHTML = 'Play' };
     }
     else {
         console.log('Playing');
         this.reader.play();
         this.reader.updatePlaying();
-        if (e) { e.target.innerHTML = 'Pause' };
+        this.displayPause(false);
+        // if (e) { e.target.innerHTML = 'Pause' };
+    }
+}
+
+displayPause(pauseFlag){
+    if(pauseFlag){
+        this.playBtn.innerHTML = "Play";
+    }
+    else{
+        this.playBtn.innerHTML = "Pause";
     }
 }
 

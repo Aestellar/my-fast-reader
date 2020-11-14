@@ -8,8 +8,11 @@ class Book{
         TextProcessor.formatText(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
+
+        let sentencesElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-sentence');
+        this.indexedSentenceList = DOMHelper.getIndexedElementList(sentencesElementList, 'data-fr-sentence-index');
+        // debugger;
         this.wordList = Word.createWordList(indexedWordList);
-        
     }
 
     getTotalCharactersCount() {
@@ -23,5 +26,9 @@ class Book{
 
     getWord(index){
         return this.wordList[index];
+    }
+
+    nextWord(index){
+        return this.wordList[index+1];
     }
 }

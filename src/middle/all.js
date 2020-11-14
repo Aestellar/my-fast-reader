@@ -8,8 +8,11 @@ class Book{
         TextProcessor.formatText(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
+
+        let sentencesElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-sentence');
+        this.indexedSentenceList = DOMHelper.getIndexedElementList(sentencesElementList, 'data-fr-sentence-index');
+        // debugger;
         this.wordList = Word.createWordList(indexedWordList);
-        
     }
 
     getTotalCharactersCount() {
@@ -23,6 +26,10 @@ class Book{
 
     getWord(index){
         return this.wordList[index];
+    }
+
+    nextWord(index){
+        return this.wordList[index+1];
     }
 }
 class Chapter{
@@ -566,12 +573,11 @@ class Reader {
         this.vm = viewManager;
         this.statistics = statistics;
         this.book = book;
-        // this.textElt = textElt;
         this.playFlag = false;
         this.currentWord;
         this.timeout;
-        this.startWordIndex = 0;
         this.readerController = new ReaderController(this);
+        this.wordRunner = new WordRunner(this);
     }
 
     init() {
@@ -590,17 +596,14 @@ class Reader {
         this.statistics.updateRemainingCharactersCount(count);
     }
 
-    getWord(index){
+    getWord(index) {
         return this.book.getWord(index);
     }
 
-    selectWord(index){
-        if(this.currentWord){
-            this.currentWord.unmark();
-        }
-        this.currentWord = this.getWord(index);
-        this.currentWord.mark();
-        console.log(this.currentWord,index);
+    selectWord(index) {
+        let selectedWord = this.getWord(index);
+        this.wordRunner.selectWord(this.currentWord, selectedWord);
+        this.currentWord = selectedWord;
     }
 
 
@@ -610,6 +613,7 @@ class Reader {
 
     pause() {
         this.playFlag = false;
+        this.readerController.displayPause(true);
         clearTimeout(this.timeout);
         this.save();
         DOMHelper.hideOverlay();
@@ -621,6 +625,7 @@ class Reader {
             return;
         }
         this.playFlag = true;
+        this.readerController.displayPause(false);
         DOMHelper.showOverlay();
     }
 
@@ -649,64 +654,56 @@ class Reader {
     }
 
     loop() {
-        // console.log('Reading');
-        let loopWord = this.currentWord;
-        if (loopWord) {
-            loopWord.unmark();
-        }
-
-        loopWord = this.nextWord(loopWord);
-
-        this.currentWord = loopWord;
-        if (!loopWord) {
-            this.pause();
-            console.log('No next word');
-        }
-        else {
-            loopWord.mark();
-            this.updateRemainigTimeStatistics(loopWord.getNextLength());
+        if (!this.currentWord) {
+            this.selectWord(0);
+            this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
             this.updatePlaying();
         }
+
+        else {
+
+            let nextWord = this.book.nextWord(this.currentWord.extractIndex());
+            if (!nextWord) {
+                this.wordRunner.resetSelection(this.currentWord);
+                this.currentWord = null;
+                this.pause();
+                console.log('No next word');
+            }
+            else {
+                this.selectWord(nextWord.extractIndex());
+                this.currentWord = nextWord;
+                this.updateRemainigTimeStatistics(nextWord.getNextLength());
+                this.updatePlaying();
+            }
+        }
     }
 
-    nextWord(loopWord) {
-        let nextWord;
-        let index = 0;
-        if (loopWord == null) {
-            nextWord = this.getWord(index);
-        }
-        else {
-            //console.log("loop Element",loopElement,loopElement.getAttribute('data-fr-word-index'));
-            index = loopWord.extractIndex();
-            nextWord = this.getWord(index + 1);
-        }
-        return nextWord;
-    }
 
     calculateSpeed() {
         let speed = this.statistics.getSpeed(this.currentWord.getLength());
-        let now = Date.now();
-        let lastDate = this.lastDate ? this.lastDate : now;
-        let timeDelta = now - lastDate;
-        speed -= timeDelta;
-        if (speed < 0) {
-            speed = 0;
-        }
+        // let now = Date.now();
+        // let lastDate = this.lastDate ? this.lastDate : now;
+        // let timeDelta = now - lastDate;
+        // speed -= timeDelta;
+        // if (speed < 0) {
+        //     speed = 0;
+        // }
         // console.log("Timeout for word", this.currentWord, speed);
         return speed;
     }
 
     save() {
-        if(this.currentWord){
-        const currentIndex = this.currentWord.extractIndex();
-        StorageManager.saveLastWord(currentIndex);
+        if (this.currentWord) {
+            const currentIndex = this.currentWord.extractIndex();
+            StorageManager.saveLastWord(currentIndex);
         }
     }
 
     load() {
         let index = StorageManager.loadLastWord();
-        this.currentWord = this.getWord(index);
-        this.currentWord.mark();
+        this.selectWord(index);
+        // this.currentWord = this.getWord(index);
+        // this.currentWord.mark();
     }
 
 }
@@ -739,7 +736,7 @@ clean(){
 
 selectWordCallback(e) {
     let index = DOMHelper.getIndexFromWordElement(e.target);
-    if(index){
+    if(Number.isInteger(index)){
         this.reader.selectWord(index);
     }
 }
@@ -767,13 +764,24 @@ pauseCallback(e) {
     if (this.reader.isPlaying()) {
         console.log('Paused');
         this.reader.pause();
-        if (e) { e.target.innerHTML = 'Play' };
+        this.displayPause(true);
+        // if (e) { e.target.innerHTML = 'Play' };
     }
     else {
         console.log('Playing');
         this.reader.play();
         this.reader.updatePlaying();
-        if (e) { e.target.innerHTML = 'Pause' };
+        this.displayPause(false);
+        // if (e) { e.target.innerHTML = 'Pause' };
+    }
+}
+
+displayPause(pauseFlag){
+    if(pauseFlag){
+        this.playBtn.innerHTML = "Play";
+    }
+    else{
+        this.playBtn.innerHTML = "Pause";
     }
 }
 
@@ -1255,11 +1263,6 @@ class Word {
         return i;
     }
 
-    extractChapterIndex(){
-        const i = parseInt(this.wordElement.getAttribute('fr-chapter-index'));
-        return i;
-    }
-
     hide(){
         this.getElement().style.display = 'none';
     }
@@ -1292,37 +1295,39 @@ class Word {
         return this.wordElement;
     }
 
-    mark(){
-        let rect = this.wordElement.getBoundingClientRect();
-        this.boundingRect = rect;
-        // this.createMirrorElement();
-        this.mirrorElement = this.createMirrorElement();
-        document.body.appendChild(this.mirrorElement);
-        // this.wordElement.style.visibility ="hidden";  
-        this.scrollIntoView();
-    }
+//     mark(){
+//         let rect = this.wordElement.getBoundingClientRect();
+//         this.boundingRect = rect;
+//         // this.createMirrorElement();
+//         this.mirrorElement = this.createMirrorElement();
+//         document.body.appendChild(this.mirrorElement);
+//         // this.wordElement.style.visibility ="hidden";  
+//         this.scrollIntoView();
+//     }
 
 
-//TODO
-    createMirrorElement(){
-        let mirror = this.wordElement.cloneNode(true);
-        // this.mirrorElement = mirror;
-        console.assert(!!mirror,"Mirror element must not be null");   
-        mirror.style.position = "absolute";
+// //TODO
+//     createMirrorElement(){
+//         let mirror = this.wordElement.cloneNode(true);
+//         // this.mirrorElement = mirror;
+//         console.assert(!!mirror,"Mirror element must not be null");   
+//         mirror.style.position = "absolute";
+//         mirror.style.zIndex = 120000;
+//         mirror.style.background = "#EEE";
+//         mirror.classList.add('fr-focus-word');
+//         mirror.setAttribute(Constants.FAST_READER_ATTRIBUTE,'true');
+              
+//         mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
+//         mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';        
 
-        mirror.style.top = this.boundingRect.top - this.boundingRect.height/2 + window.scrollY +'px';
-        mirror.style.left = this.boundingRect.left - this.boundingRect.width/2 + window.scrollX +'px';        
-        mirror.style.zIndex = 120000;
-        mirror.style.background = "#EEE";
-        mirror.classList.add('fr-focus-word');
-        mirror.setAttribute(Constants.FAST_READER_ATTRIBUTE,'1');
-        return mirror;
-    }
 
-    unmark(){+
-        // this.wordElement.style.visibility ="";
-        document.body.removeChild(this.mirrorElement);
-    }
+//         return mirror;
+//     }
+
+//     unmark(){+
+//         // this.wordElement.style.visibility ="";
+//         document.body.removeChild(this.mirrorElement);
+//     }
 
     scrollIntoView(){
         let inView = DOMHelper.isInViewportRect(this.boundingRect);
@@ -1373,14 +1378,49 @@ class Word {
 
 }
 class WordRunner{
+    constructor(reader){
+        this.reader = reader;
+        this.currentWord;
+        this.runnerElt = this.createRunnerElement();
+        document.body.appendChild(this.runnerElt);
+    }
 
-    // constructor(reader){
-    //     this.reader = reader;
-    // }
+    createRunnerElement(){
+        let runnerElt = document.createElement('span');
+        runnerElt.style.position = "absolute";
+        runnerElt.style.zIndex = 120000;
+        runnerElt.style.background = "#EEE";
+        runnerElt.classList.add('fr-focus-word');
+        runnerElt.setAttribute(Constants.FAST_READER_ATTRIBUTE,'true');
+        return runnerElt;
+    }
 
-    // //TODO
-    // showNextWord(word){
-        
-    // }
+    selectWord(currentWord,selectedWord){
+        if(currentWord){
+            this.resetSelection(currentWord);
+        }
+        this.focusWord(selectedWord);
+        console.log(this.currentWord,selectedWord);
+    }
 
+    focusWord(word){
+        let rect = word.wordElement.getBoundingClientRect();
+        word.boundingRect = rect;
+        this.runnerElt.style.top = rect.top - rect.height/2 + window.scrollY +'px';
+        this.runnerElt.style.left = rect.left - rect.width/2 + window.scrollX +'px'; 
+        this.runnerElt.appendChild(word.wordElement.cloneNode(true));
+        this.runnerElt.style.display = "block";
+        word.scrollIntoView();
+    }
+
+
+
+    resetSelection(word){
+        this.runnerElt.style.display ='none';
+        this.runnerElt.innerHTML = '';
+    }
+
+    selectSentence(){
+
+    }
 }
