@@ -172,6 +172,18 @@ class DOMHelper {
         return null;
     }
 
+    static getIndexFromChapterMenuElement(elt){
+        if (elt.hasAttribute('fr-chapter-menu-index')) {
+            let index = elt.getAttribute('fr-chapter-menu-index');
+            index = parseInt(index);
+            if (index === index) {
+                return index;
+            }
+        }
+        return null;
+    }
+
+
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
         return DOMHelper.isInViewportRect(bounding);
@@ -187,6 +199,7 @@ class DOMHelper {
         );
     };   
 
+//TODO rename    
    static getIndexedElementList(orderedList,indexName){
        let indexedList = orderedList.map((el,index)=>{
         el.setAttribute(indexName,index);
@@ -198,7 +211,7 @@ class DOMHelper {
 
 static getOrderedElementListByClass(containerElt, className){
     let orderedNodeList = DOMHelper.getOrderedNodeList(containerElt);
-    console.log(orderedNodeList, 'orderedNodeList');
+    // console.log(orderedNodeList, 'orderedNodeList');
     let orderedElementList = orderedNodeList.filter((node)=>{
         if(node.nodeType===1&&node.classList.contains(className)){
             return true;

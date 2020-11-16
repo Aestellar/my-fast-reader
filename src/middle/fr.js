@@ -1,56 +1,41 @@
-var styleCSS = `.launch_button{
-    position:fixed;
-    top:70px;
-    right:30px;
-    z-index: 100000;
-    opacity: .5;
-    font-size:18px;
-    background-color:#f5f5f5;
-    background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
-    border:1px solid #bbbbbb;
-    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.35);
-    border-radius: 10px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
-    cursor: pointer;
-    padding: 14px 28px;
-    }
-    
-    .launch_button:hover{
-    
-    text-decoration: none;
-    background-image: linear-gradient(to bottom, #ffffff, #b8b8b8);
-    background-color: #b8b8b8 ;
-    opacity: 1;
-    
-    }
-    .launch_button:active{
-    background-image: linear-gradient(to bottom, #ffffff, #939393);
-    }
-    
+var styleCSS = `
 
-    
-    .fr-main-container{
-    display:block;
-    width:100%;
-    min-height: 100vh;
-    background: #EEE;
-    overflow: auto;
-    }
-    
-    .fr-text-container{
-    width:600px;
+.fr-chapters-menu-container{
+    position: fixed;
+    z-index: 200000;
     padding-top:100px;
-    background:#efefef;
-    margin-left: auto;
-    margin-right: auto;
-    }
+    left: 0;
+    top:0;
+    height: 100%;
+    width: 300px;
+    /* border-right: 2px solid #AAA; */
+    overflow: auto;
+}
 
-    .fr-menu-container{
+.fr-chapters-menu-list{
+    overflow: auto;
+}
+
+.fr-chapters-menu-chapter{
+    /* background-color: #d9d9d9; */
+    padding-left: 20px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    user-select: none;
+}
+
+.fr-chapters-menu-chapter:hover{
+    background-color: #AAA;
+}
+.fr-chapters-menu-chapter:active{
+    background-color: #DDD;
+}
+.fr-menu-container{
     position:fixed;
     top: 0;
     min-height: 50px;
     width:100%;
-    background:#c4c4c4;
+    background:#dedede;
     z-index: 200000;
     font-size: 16px;
     }
@@ -66,7 +51,7 @@ var styleCSS = `.launch_button{
 
     .fr-menu button{
         color:black;
-        background-color: rgb(240,240,240);
+        background-color:#d9d9d9;
         height: 100%;
         vertical-align: top;
         font-size:16px;
@@ -76,9 +61,13 @@ var styleCSS = `.launch_button{
     }
 
     .fr-menu button:active{
-        border: solid white 1px;
+        border: solid #aaa 1px;
     }
 
+    .fr-menu button:focus{
+        border: solid #aaa 1px;
+    }
+    
     .fr-menu .fr-pause-button{
         padding: 1px 24px;
         /* font-size: 24px; */
@@ -121,7 +110,52 @@ var styleCSS = `.launch_button{
         vertical-align: top;
     }
 
+.launch_button{
+    position:fixed;
+    top:70px;
+    right:30px;
+    z-index: 100000;
+    opacity: .5;
+    font-size:18px;
+    background-color:#f5f5f5;
+    background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
+    border:1px solid #bbbbbb;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+    cursor: pointer;
+    padding: 14px 28px;
+    }
+    
+    .launch_button:hover{
+    
+    text-decoration: none;
+    background-image: linear-gradient(to bottom, #ffffff, #b8b8b8);
+    background-color: #b8b8b8 ;
+    opacity: 1;
+    
+    }
+    .launch_button:active{
+    background-image: linear-gradient(to bottom, #ffffff, #939393);
+    }
+    
 
+    
+    .fr-main-container{
+    display:block;
+    width:100vw;
+    min-height: 100vh;
+    background: #EEE;
+    overflow: auto;
+    }
+    
+    .fr-text-container{
+    width:600px;
+    padding-top:100px;
+    background:#efefef;
+    margin-left: auto;
+    margin-right: auto;
+    }
 
 
     .fr-sentence{

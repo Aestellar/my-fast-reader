@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1 Sat Nov 14 2020 14:48:14 GMT+0300 (RTZ 2 (зима))
+// @version      0.1 Sun Nov 15 2020 17:38:39 GMT+0300 (RTZ 2 (зима))
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -29,8 +29,19 @@ class Book{
         let sentencesElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-sentence');
         this.indexedSentenceList = DOMHelper.getIndexedElementList(sentencesElementList, 'data-fr-sentence-index');
         // debugger;
-        this.wordList = Word.createWordList(indexedWordList);
+        this.wordList = Word.buildWordList(indexedWordList);
+        this.chapterList = Chapter.buildChapterList(this.textElt);
+        console.log(this.chapterList);
     }
+
+
+    getChapterList(){
+        return this.chapterList;
+    }
+
+getChapter(index){
+    return this.chapterList[index];
+}
 
     getTotalCharactersCount() {
         // return this.book.getTotalCharactersCount();
@@ -48,158 +59,77 @@ class Book{
     nextWord(index){
         return this.wordList[index+1];
     }
+
+
+
 }
 class Chapter{
 
-    // constructor(firstTitleElement,lastTitleElement,chapterIndex){
-    //     this.nextChapter;
-    //     this.prevChapter;
-    //     this.firstTitleElement = firstTitleElement;
-    //     this.lastTitleElement = lastTitleElement;
-    //     this.firstTitleWordIndex = parseInt(this.firstTitleElement.getAttribute('data-fr-word-index'));
-    //     this.lastTitleWordIndex = parseInt(this.lastTitleElement.getAttribute('data-fr-word-index'));
-    //     this.lastWordIndex;
-    //     this.wordList = [];
-    //     this.chapterElt;
-    //     this.chapterIndex = chapterIndex;
-    //     this.subchapterList;
-    // }
+    constructor(titleElt, innerNodeList){
+        this.titleName = titleElt.textContent;
+        this.titleElt = titleElt;
+        this.innerNodeList = innerNodeList;
+    }
 
-    // init(){ 
-    //     this.markAllWord(wordList);
-    //     this.hideAllWords();
-    // }
+init()
+{
+    titleWords = this.titleElt.querySelectorAll(".fr-word");
 
-    // getIndex(){
-    //     return this.chapterIndex;
-    // }
+}
 
-    // getFirstTitleWordIndex(){
-    //     return this.firstTitleWordIndex;
-    // }
+    getTitleElement(){
+        return this.titleElt;
+    }
 
-    // getLastTitleWordIndex(){
-    //     return this.lastTitleWordIndex;
-    // }
+    getTitleName(){
+        return this.titleElt.textContent;
+    }
 
-    // getNextChapter(){
-
-    // }
-
-    // getPrevChapter(){
-
-    // }
-
-    // showChapter(){
-
-    // }
-
-    // hideChapter(){
-
-    // }
-
-    // nextWord(){
-
-    // }
-
-    // setLastWordIndex(i){
-    //     this.lastWordIndex = i;
-    // }
-
-    // getLastWordIndex(){
-    //     return this.lastWordIndex;
-    // }
-
-    // isChapterWord(index){
-    //     return (index>=this.getFirstTitleWordIndex())&&(index<=this.getLastWordIndex());
-    // }
-
-    // hideAllWords(){
-    //     // debugger;
-    //     for(let word of this.wordList){
-    //         word.hide();
-    //     }
-    // }
-
-    // showAllWords(){
-    //     for(let word of this.wordList){
-    //         word.show();
-    //     }
-    // }
-
-    // markAllWord(wordList){
-    //     for(let i = this.getFirstTitleWordIndex();i<this.getLastWordIndex();i++){
-    //         wordList[i].getElement().setAttribute('fr-chapter-index',this.chapterIndex);
-    //         this.wordList.push(wordList[i]);
-    //     }
-    // }
+    getFirstWordIndex(){
+        let firstWordElt = this.titleElt.querySelector('.fr-word');
+        return DOMHelper.getIndexFromWordElement(firstWordElt);
+    }
     
-    // wrapWordElements(wordList,titleElement){
-    //     let commonAncestorList = DOMHelper.findCommomAncestors(wordList,titleElement);
-    //     let wrappedElements = DOMHelper.wrapElements(commonAncestorList,'fr-subchapter');
-    //     return wrappedElements;
-    // }
+    extractIndex(){
+        const i = parseInt(this.titleElt.getAttribute('data-fr-chapter-index'));
+        return i;
+    }
 
-    // static splitEltToChapters(textElt, wordList){
-    //     let chapterEltList = textElt.querySelectorAll('.fr-chapter'); 
-    //     for(let chapterElt of chapterEltList){
-    //         Chapter.markChapterTitle(chapterElt);
-    //     }
-    //     let chapterList = [];
-    //     let firstWordIndex;
-    //     let lastWordIndex;
-    //     let bChapterTitleFlag = false;
-    //     let chapterIndex = -1;
 
-        
-    //     let firstTitleWordList = textElt.querySelectorAll('[data-fr-chapter-title-first-word]');
-    //     let lastTitleWordList = textElt.querySelectorAll('[data-fr-chapter-title-last-word]');
-    //     console.assert(firstTitleWordList.length==lastTitleWordList.length);
-    //     let prevChapter = null;
-    //     for(let i = 0; i<firstTitleWordList.length;++i){
-    //         let chapter = new Chapter(firstTitleWordList[i],lastTitleWordList[i],i);
-    //         let nextBound= firstTitleWordList[++i];
-    //         if (!!nextBound){
-    //             chapter.setLastWordIndex(nextBound.getAttribute('[data-fr-word-index]')-1);
-    //         }
-    //         else{
-    //             chapter.setLastWordIndex(wordList.length-1);
-    //         }
-    //         chapterList.push(chapter);
-    //     }
+    static buildChapterList(textElt){
 
-    //     console.log(chapterList,'ChapterList');
-    //     return chapterList;
+        let chapterList = [];
+        let titleList = textElt.querySelectorAll(".fr-chapter-title");
 
-    //     // for(let i = 0;i<wordList.length;++i){
-    //     //     let wordElt = wordList[i].getElement();
+        for(let i=0;i<titleList.length;i++){
+            let titleElt = titleList[i];
+            let nodeList = [];
+            // chapterContentMap.set(titleElt.textContent, nodeList);
+
+            let nextSibling = titleElt.nextSibling;
+            while(nextSibling&&nextSibling!==titleList[i+1]){
+                nodeList.push(nextSibling);
+                nextSibling = nextSibling.nextSibling;
+            }
+            let chapter = new Chapter(titleElt,nodeList);
+            chapterList.push(chapter);
+        }
+
+        return chapterList;
+
+
+   
             
+            // let chapterContainer = DOMHelper.createFRElement('span','fr-chapter-container');
+            // chapterContainer.setAttribute("data-"+'fr-chapter-index', i);
+            // titleElt.after(chapterContainer);
+            // nodeList.forEach((el)=>{
+            //     chapterContainer.appendChild(el)
+            // });
 
-    //     //     if(wordElt.hasAttribute('data-fr-chapter-title-first-word')){
-    //     //         bChapterTitleFlag =true;
-    //     //         chapterIndex+=1;
-    //     //     }
-    //     //     if(wordElt.hasAttribute('data-fr-chapter-title-last-word')){
-    //     //         bChapterTitleFlag = false;
-    //     //         continue;
-    //     //     }
-    //     //     if(!bChapterTitleFlag){
 
-    //     //     }
-    //     // }
 
-        
-    // }
-
-    // static markChapterTitle(chapterTitleElt){
-    //     let wordList = chapterTitleElt.querySelectorAll('.fr-word');
-    //     console.assert(wordList.length>0);
-    //     let lastIndex = wordList.length-1;
-    //     let firstElement = wordList[0];
-    //     let lastElement = wordList[lastIndex];
-    //     firstElement.setAttribute('data-fr-chapter-title-first-word','1');
-    //     lastElement.setAttribute('data-fr-chapter-title-last-word','1');
-    // }
+    }
 
 }
 class Constants{
@@ -385,6 +315,18 @@ class DOMHelper {
         return null;
     }
 
+    static getIndexFromChapterMenuElement(elt){
+        if (elt.hasAttribute('fr-chapter-menu-index')) {
+            let index = elt.getAttribute('fr-chapter-menu-index');
+            index = parseInt(index);
+            if (index === index) {
+                return index;
+            }
+        }
+        return null;
+    }
+
+
     static isInViewport = function (elem) {
         var bounding = elem.getBoundingClientRect();
         return DOMHelper.isInViewportRect(bounding);
@@ -400,6 +342,7 @@ class DOMHelper {
         );
     };   
 
+//TODO rename    
    static getIndexedElementList(orderedList,indexName){
        let indexedList = orderedList.map((el,index)=>{
         el.setAttribute(indexName,index);
@@ -411,7 +354,7 @@ class DOMHelper {
 
 static getOrderedElementListByClass(containerElt, className){
     let orderedNodeList = DOMHelper.getOrderedNodeList(containerElt);
-    console.log(orderedNodeList, 'orderedNodeList');
+    // console.log(orderedNodeList, 'orderedNodeList');
     let orderedElementList = orderedNodeList.filter((node)=>{
         if(node.nodeType===1&&node.classList.contains(className)){
             return true;
@@ -598,7 +541,7 @@ class Reader {
     }
 
     init() {
-        this.readerController.init();
+        this.readerController.init(this.book.getChapterList());
 
         const count = this.book.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
@@ -613,6 +556,10 @@ class Reader {
         this.statistics.updateRemainingCharactersCount(count);
     }
 
+
+
+
+
     getWord(index) {
         return this.book.getWord(index);
     }
@@ -621,6 +568,14 @@ class Reader {
         let selectedWord = this.getWord(index);
         this.wordRunner.selectWord(this.currentWord, selectedWord);
         this.currentWord = selectedWord;
+        this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
+    }
+
+    selectChapter(index){
+       let chapter = this.book.getChapter(index);
+       let firstTitleWordIndex = chapter.getFirstWordIndex();
+       this.selectWord(firstTitleWordIndex);
+        console.log('Selected chapter', chapter);
     }
 
 
@@ -732,24 +687,48 @@ constructor(reader){
     this.pauseCallbackBinded = this.pauseCallback.bind(this);
     this.selectWordCallbackBinded = this.selectWordCallback.bind(this);
     this.selectWordBehindOverlayCallbackBinded = this.selectWordBehindOverlayCallback.bind(this);
+    this.selectChapterCallbackBinded = this.selectChapterCallback.bind(this);
 }
 
 
-init(){
+init(chaptersList){
     this.playBtn = document.querySelector('[data-fr-pause-button]');
     DOMHelper.attachClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
     DOMHelper.attachClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
     DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
     this.spaceCallback = this.playCallback.bind(this);
     document.addEventListener('keyup', this.spaceCallback, true);
+    this.initChaptersMenu(chaptersList);
+    DOMHelper.attachClickEventS('[data-fr-chapters-menu-list]',this.selectChapterCallbackBinded);
+
 }
 
 clean(){
     DOMHelper.removeClickEventS('[data-fr-pause-button]', this.pauseCallbackBinded);
     DOMHelper.removeClickEventS('[data-fr-text-container]', this.selectWordCallbackBinded);
     DOMHelper.removeClickEventS('[data-fr-overlay]',this.selectWordBehindOverlayCallbackBinded);
+    DOMHelper.removeClickEventS('[data-fr-chapters-menu-list]',this.selectChapterCallbackBinded);
     document.removeEventListener('keydown', this.spaceCallback, true);
+
 }
+
+initChaptersMenu(chaptersList){
+    this.chaptersMenuElt = document.querySelector('.fr-chapters-menu-list');
+    chaptersList.forEach((chapter,index)=>{
+        let title = chapter.getTitleName();
+        let chapterMenuElt = DOMHelper.createElement('div','fr-chapters-menu-chapter',title);
+        chapterMenuElt.setAttribute('fr-chapter-menu-index',index);
+        this.chaptersMenuElt.appendChild(chapterMenuElt);
+    });
+}
+
+selectChapterCallback(e){
+    let index = DOMHelper.getIndexFromChapterMenuElement(e.target);
+    if(Number.isInteger(index)){
+        this.reader.selectChapter(index);
+    }
+}
+
 
 selectWordCallback(e) {
     let index = DOMHelper.getIndexFromWordElement(e.target);
@@ -1007,10 +986,8 @@ static readingModecallback;
 }
 class TextProcessor {
 
-
-
     static encapsulateBodyText() {
-        console.log("Encapsulate started");
+        console.log("Start encapsulating");
         let list = document.body.childNodes;
         let mapTypes = {};
         for (let i = 0; i < list.length; i++) {
@@ -1044,13 +1021,24 @@ class TextProcessor {
         return count;
     }
 
+    static markChapters(textElt){
+        let hList = textElt.querySelectorAll("h3");
+
+        for(let i=0;i<hList.length;i++){
+
+            let titleElt = hList[i];
+            titleElt.classList.add("fr-chapter-title");
+            titleElt.setAttribute("data-"+'fr-chapter-title-index', i); 
+        }
+    }
+
+
     static embraceWords(wordList) {
 
-
-       let embracedWords =  wordList.map((word, i, array) => {
+        let embracedWords = wordList.map((word, i, array) => {
             let newSpan = document.createElement("span");
             newSpan.classList.add('fr-word');
-            newSpan.textContent = word+' ';
+            newSpan.textContent = word + ' ';
             return newSpan;
             //array[i] = `<span class="fr-word"> ${word}</span>`;
         });
@@ -1072,11 +1060,11 @@ class TextProcessor {
         // let newString = wordList.join(' ');
         let sentenceElt = document.createElement("span");
         sentenceElt.classList.add('fr-sentence');
-        if(string.search("Глава")!=-1){
+        if (string.search("Глава") != -1) {
             sentenceElt.classList.add('fr-chapter');
         }
-        embracedWordList.forEach((elt)=>{
-           sentenceElt.appendChild(elt); 
+        embracedWordList.forEach((elt) => {
+            sentenceElt.appendChild(elt);
         });
 
         // sentenceElt.textContent = newString;
@@ -1099,6 +1087,7 @@ class TextProcessor {
                 }
             }
         });
+        TextProcessor.markChapters(textElt);
     }
 }
 
@@ -1159,6 +1148,18 @@ class ViewCreator{
         // document.addEventListener("keydown",controller.getescapeExitCallback(),{"once":"true"});
         return menuContainer;
     }
+
+    createChaptersMenu(){
+        let chaptersMenuContainer = DOMHelper.createFRElement('div','fr-chapters-menu-container');
+        let chapterList = DOMHelper.createElement('div','fr-chapters-menu-list');
+        chaptersMenuContainer.appendChild(chapterList);
+        // let dummyChapterName = DOMHelper.createElement('div','fr-chapters-menu-chapter','"Глава 000"');
+        // chapterList.appendChild(dummyChapterName);
+        return chaptersMenuContainer;
+
+    }
+
+
     createSpeedButtonsElement(className){
         let speedButtonsContainer = DOMHelper.createElement("div","fr-speed-buttons-container");
         let up = DOMHelper.createElement('button',className+'-up','&#x2B06');
@@ -1167,12 +1168,16 @@ class ViewCreator{
         speedButtonsContainer.appendChild(down);
         return speedButtonsContainer;
     }
+
     createMainContainer(){
         let mainContainer = DOMHelper.createFRElement("div","fr-main-container");
         let textContainer = DOMHelper.createFRElement("div","fr-text-container");
         mainContainer.appendChild(textContainer);
         let menu = this.createMenu();
         mainContainer.appendChild(menu);
+        let chaptersMenu = this.createChaptersMenu();
+        mainContainer.appendChild(chaptersMenu);
+
         return mainContainer;
     }
 }
@@ -1366,7 +1371,7 @@ class Word {
 
 
 
-    static createWordList(orderedElementsList) {
+    static buildWordList(orderedElementsList) {
         let wordList;
 
         wordList = orderedElementsList.map((el, index) => {
@@ -1417,7 +1422,7 @@ class WordRunner{
             this.resetSelection(currentWord);
         }
         this.focusWord(selectedWord);
-        console.log(this.currentWord,selectedWord);
+        // console.log(this.currentWord,selectedWord);
     }
 
     focusWord(word){
@@ -1441,59 +1446,44 @@ class WordRunner{
 
     }
 }
-var styleCSS = `.launch_button{
-    position:fixed;
-    top:70px;
-    right:30px;
-    z-index: 100000;
-    opacity: .5;
-    font-size:18px;
-    background-color:#f5f5f5;
-    background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
-    border:1px solid #bbbbbb;
-    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.35);
-    border-radius: 10px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
-    cursor: pointer;
-    padding: 14px 28px;
-    }
-    
-    .launch_button:hover{
-    
-    text-decoration: none;
-    background-image: linear-gradient(to bottom, #ffffff, #b8b8b8);
-    background-color: #b8b8b8 ;
-    opacity: 1;
-    
-    }
-    .launch_button:active{
-    background-image: linear-gradient(to bottom, #ffffff, #939393);
-    }
-    
+var styleCSS = `
 
-    
-    .fr-main-container{
-    display:block;
-    width:100%;
-    min-height: 100vh;
-    background: #EEE;
-    overflow: auto;
-    }
-    
-    .fr-text-container{
-    width:600px;
+.fr-chapters-menu-container{
+    position: fixed;
+    z-index: 200000;
     padding-top:100px;
-    background:#efefef;
-    margin-left: auto;
-    margin-right: auto;
-    }
+    left: 0;
+    top:0;
+    height: 100%;
+    width: 300px;
+    /* border-right: 2px solid #AAA; */
+    overflow: auto;
+}
 
-    .fr-menu-container{
+.fr-chapters-menu-list{
+    overflow: auto;
+}
+
+.fr-chapters-menu-chapter{
+    /* background-color: #d9d9d9; */
+    padding-left: 20px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    user-select: none;
+}
+
+.fr-chapters-menu-chapter:hover{
+    background-color: #AAA;
+}
+.fr-chapters-menu-chapter:active{
+    background-color: #DDD;
+}
+.fr-menu-container{
     position:fixed;
     top: 0;
     min-height: 50px;
     width:100%;
-    background:#c4c4c4;
+    background:#dedede;
     z-index: 200000;
     font-size: 16px;
     }
@@ -1509,7 +1499,7 @@ var styleCSS = `.launch_button{
 
     .fr-menu button{
         color:black;
-        background-color: rgb(240,240,240);
+        background-color:#d9d9d9;
         height: 100%;
         vertical-align: top;
         font-size:16px;
@@ -1519,9 +1509,13 @@ var styleCSS = `.launch_button{
     }
 
     .fr-menu button:active{
-        border: solid white 1px;
+        border: solid #aaa 1px;
     }
 
+    .fr-menu button:focus{
+        border: solid #aaa 1px;
+    }
+    
     .fr-menu .fr-pause-button{
         padding: 1px 24px;
         /* font-size: 24px; */
@@ -1564,7 +1558,52 @@ var styleCSS = `.launch_button{
         vertical-align: top;
     }
 
+.launch_button{
+    position:fixed;
+    top:70px;
+    right:30px;
+    z-index: 100000;
+    opacity: .5;
+    font-size:18px;
+    background-color:#f5f5f5;
+    background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
+    border:1px solid #bbbbbb;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+    cursor: pointer;
+    padding: 14px 28px;
+    }
+    
+    .launch_button:hover{
+    
+    text-decoration: none;
+    background-image: linear-gradient(to bottom, #ffffff, #b8b8b8);
+    background-color: #b8b8b8 ;
+    opacity: 1;
+    
+    }
+    .launch_button:active{
+    background-image: linear-gradient(to bottom, #ffffff, #939393);
+    }
+    
 
+    
+    .fr-main-container{
+    display:block;
+    width:100vw;
+    min-height: 100vh;
+    background: #EEE;
+    overflow: auto;
+    }
+    
+    .fr-text-container{
+    width:600px;
+    padding-top:100px;
+    background:#efefef;
+    margin-left: auto;
+    margin-right: auto;
+    }
 
 
     .fr-sentence{

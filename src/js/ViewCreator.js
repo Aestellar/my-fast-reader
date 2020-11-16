@@ -54,6 +54,18 @@ class ViewCreator{
         // document.addEventListener("keydown",controller.getescapeExitCallback(),{"once":"true"});
         return menuContainer;
     }
+
+    createChaptersMenu(){
+        let chaptersMenuContainer = DOMHelper.createFRElement('div','fr-chapters-menu-container');
+        let chapterList = DOMHelper.createElement('div','fr-chapters-menu-list');
+        chaptersMenuContainer.appendChild(chapterList);
+        // let dummyChapterName = DOMHelper.createElement('div','fr-chapters-menu-chapter','"Глава 000"');
+        // chapterList.appendChild(dummyChapterName);
+        return chaptersMenuContainer;
+
+    }
+
+
     createSpeedButtonsElement(className){
         let speedButtonsContainer = DOMHelper.createElement("div","fr-speed-buttons-container");
         let up = DOMHelper.createElement('button',className+'-up','&#x2B06');
@@ -62,12 +74,16 @@ class ViewCreator{
         speedButtonsContainer.appendChild(down);
         return speedButtonsContainer;
     }
+
     createMainContainer(){
         let mainContainer = DOMHelper.createFRElement("div","fr-main-container");
         let textContainer = DOMHelper.createFRElement("div","fr-text-container");
         mainContainer.appendChild(textContainer);
         let menu = this.createMenu();
         mainContainer.appendChild(menu);
+        let chaptersMenu = this.createChaptersMenu();
+        mainContainer.appendChild(chaptersMenu);
+
         return mainContainer;
     }
 }

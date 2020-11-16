@@ -12,8 +12,19 @@ class Book{
         let sentencesElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-sentence');
         this.indexedSentenceList = DOMHelper.getIndexedElementList(sentencesElementList, 'data-fr-sentence-index');
         // debugger;
-        this.wordList = Word.createWordList(indexedWordList);
+        this.wordList = Word.buildWordList(indexedWordList);
+        this.chapterList = Chapter.buildChapterList(this.textElt);
+        console.log(this.chapterList);
     }
+
+
+    getChapterList(){
+        return this.chapterList;
+    }
+
+getChapter(index){
+    return this.chapterList[index];
+}
 
     getTotalCharactersCount() {
         // return this.book.getTotalCharactersCount();
@@ -31,4 +42,7 @@ class Book{
     nextWord(index){
         return this.wordList[index+1];
     }
+
+
+
 }

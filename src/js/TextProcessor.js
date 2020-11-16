@@ -1,9 +1,7 @@
 class TextProcessor {
 
-
-
     static encapsulateBodyText() {
-        console.log("Encapsulate started");
+        console.log("Start encapsulating");
         let list = document.body.childNodes;
         let mapTypes = {};
         for (let i = 0; i < list.length; i++) {
@@ -37,13 +35,24 @@ class TextProcessor {
         return count;
     }
 
+    static markChapters(textElt){
+        let hList = textElt.querySelectorAll("h3");
+
+        for(let i=0;i<hList.length;i++){
+
+            let titleElt = hList[i];
+            titleElt.classList.add("fr-chapter-title");
+            titleElt.setAttribute("data-"+'fr-chapter-title-index', i); 
+        }
+    }
+
+
     static embraceWords(wordList) {
 
-
-       let embracedWords =  wordList.map((word, i, array) => {
+        let embracedWords = wordList.map((word, i, array) => {
             let newSpan = document.createElement("span");
             newSpan.classList.add('fr-word');
-            newSpan.textContent = word+' ';
+            newSpan.textContent = word + ' ';
             return newSpan;
             //array[i] = `<span class="fr-word"> ${word}</span>`;
         });
@@ -65,11 +74,11 @@ class TextProcessor {
         // let newString = wordList.join(' ');
         let sentenceElt = document.createElement("span");
         sentenceElt.classList.add('fr-sentence');
-        if(string.search("Глава")!=-1){
+        if (string.search("Глава") != -1) {
             sentenceElt.classList.add('fr-chapter');
         }
-        embracedWordList.forEach((elt)=>{
-           sentenceElt.appendChild(elt); 
+        embracedWordList.forEach((elt) => {
+            sentenceElt.appendChild(elt);
         });
 
         // sentenceElt.textContent = newString;
@@ -92,6 +101,7 @@ class TextProcessor {
                 }
             }
         });
+        TextProcessor.markChapters(textElt);
     }
 }
 

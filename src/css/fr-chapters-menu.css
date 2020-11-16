@@ -1,0 +1,32 @@
+
+
+.fr-chapters-menu-container{
+    position: fixed;
+    z-index: 200000;
+    padding-top:100px;
+    left: 0;
+    top:0;
+    height: 100%;
+    width: 300px;
+    /* border-right: 2px solid #AAA; */
+    overflow: auto;
+}
+
+.fr-chapters-menu-list{
+    overflow: auto;
+}
+
+.fr-chapters-menu-chapter{
+    /* background-color: #d9d9d9; */
+    padding-left: 20px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    user-select: none;
+}
+
+.fr-chapters-menu-chapter:hover{
+    background-color: #AAA;
+}
+.fr-chapters-menu-chapter:active{
+    background-color: #DDD;
+}

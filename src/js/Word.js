@@ -108,7 +108,7 @@ class Word {
 
 
 
-    static createWordList(orderedElementsList) {
+    static buildWordList(orderedElementsList) {
         let wordList;
 
         wordList = orderedElementsList.map((el, index) => {

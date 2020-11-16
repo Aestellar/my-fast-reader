@@ -12,7 +12,7 @@ class Reader {
     }
 
     init() {
-        this.readerController.init();
+        this.readerController.init(this.book.getChapterList());
 
         const count = this.book.getTotalCharactersCount();
         this.updateTotalTimeStatistics(count);
@@ -27,6 +27,10 @@ class Reader {
         this.statistics.updateRemainingCharactersCount(count);
     }
 
+
+
+
+
     getWord(index) {
         return this.book.getWord(index);
     }
@@ -35,6 +39,14 @@ class Reader {
         let selectedWord = this.getWord(index);
         this.wordRunner.selectWord(this.currentWord, selectedWord);
         this.currentWord = selectedWord;
+        this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
+    }
+
+    selectChapter(index){
+       let chapter = this.book.getChapter(index);
+       let firstTitleWordIndex = chapter.getFirstWordIndex();
+       this.selectWord(firstTitleWordIndex);
+        console.log('Selected chapter', chapter);
     }
 
 

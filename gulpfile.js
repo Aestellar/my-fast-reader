@@ -1,6 +1,7 @@
 let gulp = require('gulp');
 let imagemin = require("gulp-imagemin");
 let cache = require("gulp-cache");
+const rename = require("gulp-rename");
 const concat = require("gulp-concat");
 const count = require('gulp-count');
 const insert = require('gulp-insert');
@@ -50,6 +51,7 @@ gulp.task('mergecss',()=>{
 gulp.task('wrapcss', () => {
     return gulp.src('./middle/merged.css')
         .pipe(insert.wrap('var styleCSS = `', '`;'))
+        .pipe(rename('fr.css'))
         .pipe(gulp.dest('./src/middle/'));
 });
 

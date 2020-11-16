@@ -21,7 +21,7 @@ class WordRunner{
             this.resetSelection(currentWord);
         }
         this.focusWord(selectedWord);
-        console.log(this.currentWord,selectedWord);
+        // console.log(this.currentWord,selectedWord);
     }
 
     focusWord(word){
