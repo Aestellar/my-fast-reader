@@ -120,7 +120,7 @@ class Constants{
     static get BASESPEEDCHANGE(){return 100};
     static get SHIFTSPEEDCHANGE(){return 500};
     static get FAST_READER_ATTRIBUTE(){return "data-fast-reader-attribute"};
-    static get exitButtonName(){return "data-fr-exit-btn"};
+    static get exitButtonName(){return "data-fr-exit-button"};
     static get menuName(){return "data-fr-menu"};
     static get textContainerName(){return 'data-fr-text-container'};
 }
@@ -521,6 +521,9 @@ class Reader {
         this.timeout;
         this.readerController = new ReaderController(this);
         this.wordRunner = new WordRunner(this);
+        this.lastWordTime;
+        this.wastedTime;
+
     }
 
     init() {
@@ -535,7 +538,29 @@ class Reader {
         this.statistics.updateTotalCharactersCount(count);
     }
 
-    updateRemainigTimeStatistics(count) {
+    updateRemainingTimeStatistics(count) {
+        let d = new Date();
+        const afkTimeout = 60000;
+        if(!this.lastWordTime){
+             this.lastWordTime = d.getTime();
+        }
+
+        else{
+            let timeDelta = 0;
+            if(this.lastWordTime+afkTimeout < d.getTime()){
+                this.wastedTime+=timeDelta;
+            }
+            else{
+                timeDelta = d.getTime()-this.lastWordTime;
+                this.wastedTime+=timeDelta;
+            }
+        }
+        this.lastWordTime = d.getTime();
+
+
+         console.log(this.wastedTime);
+
+        this.statistics.updateWastedTime(this.wastedTime);
         this.statistics.updateRemainingCharactersCount(count);
     }
 
@@ -551,7 +576,7 @@ class Reader {
         let selectedWord = this.getWord(index);
         this.wordRunner.selectWord(this.currentWord, selectedWord);
         this.currentWord = selectedWord;
-        this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
+        this.updateRemainingTimeStatistics(this.currentWord.getNextLength());
     }
 
     selectChapter(index){
@@ -611,7 +636,7 @@ class Reader {
     loop() {
         if (!this.currentWord) {
             this.selectWord(0);
-            this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
+            this.updateRemainingTimeStatistics(this.currentWord.getNextLength());
             this.updatePlaying();
         }
 
@@ -627,7 +652,7 @@ class Reader {
             else {
                 this.selectWord(nextWord.extractIndex());
                 this.currentWord = nextWord;
-                this.updateRemainigTimeStatistics(nextWord.getNextLength());
+                this.updateRemainingTimeStatistics(nextWord.getNextLength());
                 this.updatePlaying();
             }
         }
@@ -652,11 +677,16 @@ class Reader {
             const currentIndex = this.currentWord.extractIndex();
             StorageManager.saveLastWord(currentIndex);
         }
+
+        StorageManager.saveWastedTime(this.wastedTime);
     }
 
     load() {
+        this.wastedTime = StorageManager.loadWastedTime();
+
         let index = StorageManager.loadLastWord();
         this.selectWord(index);
+
         // this.currentWord = this.getWord(index);
         // this.currentWord.mark();
     }
@@ -773,6 +803,7 @@ class Statistics {
         this.wordsPerSelection = 5;
         this.symbolsCount = 0;
         this.remainingSymbols = 0;
+        this.wastedTime = 0;
         this.init();
     }
 
@@ -805,6 +836,17 @@ class Statistics {
         
         let totalCharactersCountElt = this.statElt.querySelector('[data-fr-total-characters-count]');
         totalCharactersCountElt.textContent = "Total characters: "+this.symbolsCount;
+
+
+        let wastedTimeElt = this.statElt.querySelector('[data-fr-wasted-time]');
+        wastedTimeElt.textContent = "Time: " + this.getFormattedTime(this.wastedTime/1000);
+        
+
+
+        let percentage = 100*(totalTime-remainingTime)/totalTime;
+        let percentageElt = this.statElt.querySelector('[data-fr-percentage-of-completion]');
+        percentageElt.textContent = "Completion: "+percentage.toPrecision(3)+'%';
+
         //return this.statElt;
     }
 
@@ -862,6 +904,11 @@ class Statistics {
         this.updateView();
     }   
 
+    updateWastedTime(time){
+        this.wastedTime = time;
+        this.updateView();       
+    }
+
     formatTime(time){
         
     }
@@ -870,23 +917,55 @@ class Statistics {
 class StorageManager{
 
     static defaultSelectorName = "FR-default-selector";
+
+    static saveLastWord(wordIndex){
+        // let path = window.location.pathname;
+        // window.localStorage.setItem(path,wordIndex);
+        StorageManager.save(wordIndex, '');
+    }    
+
     static loadLastWord(){
-        let path = window.location.pathname;
-        let lastWordIndex = window.localStorage.getItem(path);
+
+        let lastWordIndex = StorageManager.load('');
+        
+
+        // let path = window.location.pathname;
+        // let lastWordIndex = window.localStorage.getItem(path);
         if (lastWordIndex){
             return lastWordIndex;
         }
         return 0;
     }
 
+    static saveWastedTime(wastedTime){
+        StorageManager.save(wastedTime, 'wasted-time')
+    }
+
+    static loadWastedTime(){
+       let wastedTime =  StorageManager.load('wasted-time');
+       console.log('Wasted time load',wastedTime);
+       if(wastedTime){
+           return wastedTime;
+       }
+       return 0;
+    }
+
+
+    static save(value, suffix){
+        let path = window.location.pathname;
+        window.localStorage.setItem(path+'|fr|'+suffix,value);
+    }
+
+    static load(suffix){
+        let path = window.location.pathname;
+        let result = window.localStorage.getItem(path+'|fr|'+suffix);
+        return result;
+    }
     // static putLastWord(wordIndex){
 
     // }
 
-    static saveLastWord(wordIndex){
-        let path = window.location.pathname;
-        window.localStorage.setItem(path,wordIndex);
-    }
+
 
     static saveDefaultSelector(selector){
         window.localStorage.setItem(StorageManager.defaultSelectorName,selector);
@@ -896,6 +975,8 @@ class StorageManager{
         return window.localStorage.getItem(StorageManager.defaultSelectorName);
 
     }
+
+
 
 }
 class TextPicker {
@@ -1108,24 +1189,45 @@ class ViewCreator{
         // speedBlock.appendChild(wordsUp);
         // speedBlock.appendChild(wordsDown);
 
+        let controlBlock = DOMHelper.createElement("div","fr-menu-control-block");
+
+        menu.appendChild(controlBlock);
+        
         let pauseBtn = DOMHelper.createElement('button','fr-pause-button','Play');
-        menu.appendChild(pauseBtn);
-        let statistics = DOMHelper.createElement("div","fr-statistics");
-        menu.appendChild(statistics);
+        controlBlock.appendChild(pauseBtn);
+
+        let exitBtn = DOMHelper.createElement("button","fr-exit-button","exit");
+        controlBlock.appendChild(exitBtn);
 
 
+
+        let statisticsBlock = DOMHelper.createElement("div","fr-statistics-block");
+        menu.appendChild(statisticsBlock);
+
+        let columnOne = DOMHelper.createElement("div","fr-statistics-column");
+        statisticsBlock.appendChild(columnOne);
 
         let timeToReadTotal = DOMHelper.createElement('div','fr-time-to-read-total');
-        statistics.appendChild(timeToReadTotal);
+        columnOne.appendChild(timeToReadTotal);
 
         let timeToReadRemaiming = DOMHelper.createElement('div','fr-time-to-read-remaining','Remaining time');
-        statistics.appendChild(timeToReadRemaiming);
+        columnOne.appendChild(timeToReadRemaiming);
 
         let totalCharatersCount = DOMHelper.createElement('div','fr-total-characters-count','Total characters: 00');
-        statistics.appendChild(totalCharatersCount);
+        columnOne.appendChild(totalCharatersCount);
 
-        let exitBtn = DOMHelper.createElement("button","fr-exit-btn","exit");
-        menu.appendChild(exitBtn);
+        let columnTwo = DOMHelper.createElement("div","fr-statistics-column");
+        statisticsBlock.appendChild(columnTwo);
+
+
+        let wastedTime = DOMHelper.createElement('div','fr-wasted-time','Wasted time: hh.mm.ss');
+        columnTwo.appendChild(wastedTime);
+ 
+
+        let percentage = DOMHelper.createElement('div','fr-percentage-of-completion','Percent of competion: xx.xx%');
+        columnTwo.appendChild(percentage);
+
+
 
         // // exitBtn.addEventListener("click",controller.getClickExitCallback(),{"once":"true"});
         // document.addEventListener("keydown",controller.getescapeExitCallback(),{"once":"true"});

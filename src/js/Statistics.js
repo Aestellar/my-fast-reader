@@ -6,6 +6,7 @@ class Statistics {
         this.wordsPerSelection = 5;
         this.symbolsCount = 0;
         this.remainingSymbols = 0;
+        this.wastedTime = 0;
         this.init();
     }
 
@@ -38,6 +39,17 @@ class Statistics {
         
         let totalCharactersCountElt = this.statElt.querySelector('[data-fr-total-characters-count]');
         totalCharactersCountElt.textContent = "Total characters: "+this.symbolsCount;
+
+
+        let wastedTimeElt = this.statElt.querySelector('[data-fr-wasted-time]');
+        wastedTimeElt.textContent = "Time: " + this.getFormattedTime(this.wastedTime/1000);
+        
+
+
+        let percentage = 100*(totalTime-remainingTime)/totalTime;
+        let percentageElt = this.statElt.querySelector('[data-fr-percentage-of-completion]');
+        percentageElt.textContent = "Completion: "+percentage.toPrecision(3)+'%';
+
         //return this.statElt;
     }
 
@@ -94,6 +106,11 @@ class Statistics {
         this.remainingSymbols = count;
         this.updateView();
     }   
+
+    updateWastedTime(time){
+        this.wastedTime = time;
+        this.updateView();       
+    }
 
     formatTime(time){
         

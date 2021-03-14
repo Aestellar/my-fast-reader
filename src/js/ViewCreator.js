@@ -31,24 +31,45 @@ class ViewCreator{
         // speedBlock.appendChild(wordsUp);
         // speedBlock.appendChild(wordsDown);
 
+        let controlBlock = DOMHelper.createElement("div","fr-menu-control-block");
+
+        menu.appendChild(controlBlock);
+        
         let pauseBtn = DOMHelper.createElement('button','fr-pause-button','Play');
-        menu.appendChild(pauseBtn);
-        let statistics = DOMHelper.createElement("div","fr-statistics");
-        menu.appendChild(statistics);
+        controlBlock.appendChild(pauseBtn);
+
+        let exitBtn = DOMHelper.createElement("button","fr-exit-button","exit");
+        controlBlock.appendChild(exitBtn);
 
 
+
+        let statisticsBlock = DOMHelper.createElement("div","fr-statistics-block");
+        menu.appendChild(statisticsBlock);
+
+        let columnOne = DOMHelper.createElement("div","fr-statistics-column");
+        statisticsBlock.appendChild(columnOne);
 
         let timeToReadTotal = DOMHelper.createElement('div','fr-time-to-read-total');
-        statistics.appendChild(timeToReadTotal);
+        columnOne.appendChild(timeToReadTotal);
 
         let timeToReadRemaiming = DOMHelper.createElement('div','fr-time-to-read-remaining','Remaining time');
-        statistics.appendChild(timeToReadRemaiming);
+        columnOne.appendChild(timeToReadRemaiming);
 
         let totalCharatersCount = DOMHelper.createElement('div','fr-total-characters-count','Total characters: 00');
-        statistics.appendChild(totalCharatersCount);
+        columnOne.appendChild(totalCharatersCount);
 
-        let exitBtn = DOMHelper.createElement("button","fr-exit-btn","exit");
-        menu.appendChild(exitBtn);
+        let columnTwo = DOMHelper.createElement("div","fr-statistics-column");
+        statisticsBlock.appendChild(columnTwo);
+
+
+        let wastedTime = DOMHelper.createElement('div','fr-wasted-time','Wasted time: hh.mm.ss');
+        columnTwo.appendChild(wastedTime);
+ 
+
+        let percentage = DOMHelper.createElement('div','fr-percentage-of-completion','Percent of competion: xx.xx%');
+        columnTwo.appendChild(percentage);
+
+
 
         // // exitBtn.addEventListener("click",controller.getClickExitCallback(),{"once":"true"});
         // document.addEventListener("keydown",controller.getescapeExitCallback(),{"once":"true"});

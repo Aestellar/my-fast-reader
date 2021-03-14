@@ -43,7 +43,7 @@
     .fr-menu{
     color:black;
     font-family: Arial, Helvetica, sans-serif;
-    width:800px;
+    width:1000px;
     margin-left: auto;
     margin-right: auto;
     line-height: normal;
@@ -67,13 +67,34 @@
     .fr-menu button:focus{
         border: solid #aaa 1px;
     }
-    
-    .fr-menu .fr-pause-button{
-        padding: 1px 24px;
+
+    .fr-menu-control-block{
+        display: inline-block;
+        vertical-align: top;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .fr-pause-button{
+        /* padding: 1px 24px; */
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        min-width: 70px;
         /* font-size: 24px; */
         /* height: 55px; */
     }
 
+    .fr-exit-button{
+        display: block;
+        margin-top: 10px;
+        margin-left: auto;
+        margin-right: auto;
+        min-width: 70px;
+        /* padding: 1px 24px; */
+        /* font-size: 24px; */
+        /* height: 55px; */
+    }
 
     .fr-speed-block{
         display: inline-block;
@@ -96,7 +117,9 @@
     }
 
 
-    .fr-statistics{
+
+
+    .fr-statistics-block{
     display:inline-block;
     /* width:250px; */
     }
@@ -104,6 +127,13 @@
         vertical-align: top;
         height: 100%;
     } */
+
+
+    .fr-statistics-column{
+    display:inline-block;
+    margin-right: 10px;
+    }
+    
 
     .fr-words-per-selection{
         display: inline-block;

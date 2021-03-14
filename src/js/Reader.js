@@ -9,6 +9,9 @@ class Reader {
         this.timeout;
         this.readerController = new ReaderController(this);
         this.wordRunner = new WordRunner(this);
+        this.lastWordTime;
+        this.wastedTime;
+
     }
 
     init() {
@@ -23,7 +26,29 @@ class Reader {
         this.statistics.updateTotalCharactersCount(count);
     }
 
-    updateRemainigTimeStatistics(count) {
+    updateRemainingTimeStatistics(count) {
+        let d = new Date();
+        const afkTimeout = 60000;
+        if(!this.lastWordTime){
+             this.lastWordTime = d.getTime();
+        }
+
+        else{
+            let timeDelta = 0;
+            if(this.lastWordTime+afkTimeout < d.getTime()){
+                this.wastedTime+=timeDelta;
+            }
+            else{
+                timeDelta = d.getTime()-this.lastWordTime;
+                this.wastedTime+=timeDelta;
+            }
+        }
+        this.lastWordTime = d.getTime();
+
+
+         console.log(this.wastedTime);
+
+        this.statistics.updateWastedTime(this.wastedTime);
         this.statistics.updateRemainingCharactersCount(count);
     }
 
@@ -39,7 +64,7 @@ class Reader {
         let selectedWord = this.getWord(index);
         this.wordRunner.selectWord(this.currentWord, selectedWord);
         this.currentWord = selectedWord;
-        this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
+        this.updateRemainingTimeStatistics(this.currentWord.getNextLength());
     }
 
     selectChapter(index){
@@ -99,7 +124,7 @@ class Reader {
     loop() {
         if (!this.currentWord) {
             this.selectWord(0);
-            this.updateRemainigTimeStatistics(this.currentWord.getNextLength());
+            this.updateRemainingTimeStatistics(this.currentWord.getNextLength());
             this.updatePlaying();
         }
 
@@ -115,7 +140,7 @@ class Reader {
             else {
                 this.selectWord(nextWord.extractIndex());
                 this.currentWord = nextWord;
-                this.updateRemainigTimeStatistics(nextWord.getNextLength());
+                this.updateRemainingTimeStatistics(nextWord.getNextLength());
                 this.updatePlaying();
             }
         }
@@ -140,11 +165,16 @@ class Reader {
             const currentIndex = this.currentWord.extractIndex();
             StorageManager.saveLastWord(currentIndex);
         }
+
+        StorageManager.saveWastedTime(this.wastedTime);
     }
 
     load() {
+        this.wastedTime = StorageManager.loadWastedTime();
+
         let index = StorageManager.loadLastWord();
         this.selectWord(index);
+
         // this.currentWord = this.getWord(index);
         // this.currentWord.mark();
     }
