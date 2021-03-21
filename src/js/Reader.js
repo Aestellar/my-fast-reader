@@ -8,6 +8,7 @@ class Reader {
         this.currentWord;
         this.timeout;
         this.readerController = new ReaderController(this);
+        this.readerView = new ReaderView(this);
         this.wordRunner = new WordRunner(this);
         this.lastWordTime;
         this.wastedTime;
@@ -125,6 +126,7 @@ class Reader {
         if (!this.currentWord) {
             this.selectWord(0);
             this.updateRemainingTimeStatistics(this.currentWord.getNextLength());
+            this.save();
             this.updatePlaying();
         }
 
@@ -141,6 +143,7 @@ class Reader {
                 this.selectWord(nextWord.extractIndex());
                 this.currentWord = nextWord;
                 this.updateRemainingTimeStatistics(nextWord.getNextLength());
+                this.save();
                 this.updatePlaying();
             }
         }
@@ -161,18 +164,41 @@ class Reader {
     }
 
     save() {
+        let info = {};
+
+        info['lastWordIndex'] = 0;
+
+
         if (this.currentWord) {
             const currentIndex = this.currentWord.extractIndex();
-            StorageManager.saveLastWord(currentIndex);
+            // StorageManager.saveLastWord(currentIndex);
+            info['lastWordIndex']= currentIndex;
         }
 
-        StorageManager.saveWastedTime(this.wastedTime);
+        info['wastedTime']= this.wastedTime;
+        // StorageManager.saveWastedTime(this.wastedTime);
+        StorageManager.saveLoopInfo(info);
     }
 
     load() {
-        this.wastedTime = StorageManager.loadWastedTime();
 
-        let index = StorageManager.loadLastWord();
+        let index = 0;
+        let wastedTime = 0;
+
+        let info = StorageManager.loadLoopInfo();
+        if(info)
+        {
+            if(info['lastWordIndex']){
+                index = info['lastWordIndex'];
+            }
+
+            if(info['wastedTime']){
+                wastedTime = info['wastedTime'];
+            }
+        }
+        this.wastedTime = wastedTime;
+
+        // let index = StorageManager.loadLastWord();
         this.selectWord(index);
 
         // this.currentWord = this.getWord(index);

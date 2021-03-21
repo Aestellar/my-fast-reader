@@ -1,10 +1,10 @@
-class Book{
+class Book {
 
-    constructor(textElt){
+    constructor(textElt) {
         this.textElt = textElt;
     }
 
-    init(){
+    init() {
         TextProcessor.formatText(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
@@ -13,18 +13,18 @@ class Book{
         this.indexedSentenceList = DOMHelper.getIndexedElementList(sentencesElementList, 'data-fr-sentence-index');
         // debugger;
         this.wordList = Word.buildWordList(indexedWordList);
-        this.chapterList = Chapter.buildChapterList(this.textElt);
+        this.chapterList = Chapter.buildChapterList(this.textElt, this);
         console.log(this.chapterList);
     }
 
 
-    getChapterList(){
+    getChapterList() {
         return this.chapterList;
     }
 
-getChapter(index){
-    return this.chapterList[index];
-}
+    getChapter(index) {
+        return this.chapterList[index];
+    }
 
     getTotalCharactersCount() {
         // return this.book.getTotalCharactersCount();
@@ -35,12 +35,12 @@ getChapter(index){
         return count;
     }
 
-    getWord(index){
+    getWord(index) {
         return this.wordList[index];
     }
 
-    nextWord(index){
-        return this.wordList[index+1];
+    nextWord(index) {
+        return this.wordList[index + 1];
     }
 
 

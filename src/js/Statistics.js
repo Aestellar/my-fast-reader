@@ -45,7 +45,7 @@ class Statistics {
         wastedTimeElt.textContent = "Time: " + this.getFormattedTime(this.wastedTime/1000);
         
 
-
+//TODO Change calculation
         let percentage = 100*(totalTime-remainingTime)/totalTime;
         let percentageElt = this.statElt.querySelector('[data-fr-percentage-of-completion]');
         percentageElt.textContent = "Completion: "+percentage.toPrecision(3)+'%';

@@ -17,7 +17,10 @@ init(chaptersList){
     DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
     this.spaceCallback = this.playCallback.bind(this);
     document.addEventListener('keyup', this.spaceCallback, true);
-    this.initChaptersMenu(chaptersList);
+
+    this.reader.readerView.initChaptersMenu(chaptersList);
+    
+    // this.initChaptersMenu(chaptersList);
     DOMHelper.attachClickEventS('[data-fr-chapters-menu-list]',this.selectChapterCallbackBinded);
 
 }
@@ -31,15 +34,7 @@ clean(){
 
 }
 
-initChaptersMenu(chaptersList){
-    this.chaptersMenuElt = document.querySelector('.fr-chapters-menu-list');
-    chaptersList.forEach((chapter,index)=>{
-        let title = chapter.getTitleName();
-        let chapterMenuElt = DOMHelper.createElement('div','fr-chapters-menu-chapter',title);
-        chapterMenuElt.setAttribute('fr-chapter-menu-index',index);
-        this.chaptersMenuElt.appendChild(chapterMenuElt);
-    });
-}
+
 
 selectChapterCallback(e){
     let index = DOMHelper.getIndexFromChapterMenuElement(e.target);

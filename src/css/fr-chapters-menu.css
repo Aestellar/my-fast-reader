@@ -3,13 +3,14 @@
 .fr-chapters-menu-container{
     position: fixed;
     z-index: 200000;
-    padding-top:100px;
+    margin-top: 60px;
+    padding-top: 20px;
     left: 0;
     top:0;
     height: 100%;
     width: 300px;
     /* border-right: 2px solid #AAA; */
-    overflow: auto;
+    overflow: scroll;
 }
 
 .fr-chapters-menu-list{
@@ -29,4 +30,23 @@
 }
 .fr-chapters-menu-chapter:active{
     background-color: #DDD;
+}
+
+.fr-chapters-menu-progress-wrapper{
+    position: relative;
+}
+
+.fr-chapters-menu-progress-bar-text{
+    position: absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    z-index: 1;
+}
+
+.fr-chapters-menu-progress-bar-progress{
+    position: absolute;
+    top:0;
+    left:0;
+    background-color: #dedede;    
 }

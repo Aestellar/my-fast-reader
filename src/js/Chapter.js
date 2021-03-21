@@ -1,9 +1,11 @@
 class Chapter{
 
-    constructor(titleElt, innerNodeList){
+    constructor(titleElt, innerNodeList, book){
         this.titleName = titleElt.textContent;
         this.titleElt = titleElt;
         this.innerNodeList = innerNodeList;
+        this.book = book;
+        this.menuElt;
     }
 
 init()
@@ -30,8 +32,21 @@ init()
         return i;
     }
 
+    getPercentage(){
 
-    static buildChapterList(textElt){
+        let localFirst = this.book.getWord(this.getFirstWordIndex()).getPreviousLength();
+        let total = this.book.getTotalCharactersCount();
+        let percentage = 100*(total-(total - localFirst))/total;
+        return percentage;
+    }
+
+    setMenuElement(menuElt){
+        this.menuElt = menuElt;
+    }
+
+
+    static buildChapterList(textElt, book){
+        
 
         let chapterList = [];
         let titleList = textElt.querySelectorAll(".fr-chapter-title");
@@ -46,7 +61,7 @@ init()
                 nodeList.push(nextSibling);
                 nextSibling = nextSibling.nextSibling;
             }
-            let chapter = new Chapter(titleElt,nodeList);
+            let chapter = new Chapter(titleElt,nodeList, book);
             chapterList.push(chapter);
         }
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1 Sun Mar 14 2021 15:38:43 GMT+0300 (Москва, стандартное время)
+// @version      0.1 Sun Mar 21 2021 13:22:27 GMT+0300 (Москва, стандартное время)
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -15,13 +15,13 @@
 
 (function() {
     'use strict';
-class Book{
+class Book {
 
-    constructor(textElt){
+    constructor(textElt) {
         this.textElt = textElt;
     }
 
-    init(){
+    init() {
         TextProcessor.formatText(this.textElt);
         let wordsElementList = DOMHelper.getOrderedElementListByClass(this.textElt, 'fr-word');
         let indexedWordList = DOMHelper.getIndexedElementList(wordsElementList, 'data-fr-word-index');
@@ -30,18 +30,18 @@ class Book{
         this.indexedSentenceList = DOMHelper.getIndexedElementList(sentencesElementList, 'data-fr-sentence-index');
         // debugger;
         this.wordList = Word.buildWordList(indexedWordList);
-        this.chapterList = Chapter.buildChapterList(this.textElt);
+        this.chapterList = Chapter.buildChapterList(this.textElt, this);
         console.log(this.chapterList);
     }
 
 
-    getChapterList(){
+    getChapterList() {
         return this.chapterList;
     }
 
-getChapter(index){
-    return this.chapterList[index];
-}
+    getChapter(index) {
+        return this.chapterList[index];
+    }
 
     getTotalCharactersCount() {
         // return this.book.getTotalCharactersCount();
@@ -52,12 +52,12 @@ getChapter(index){
         return count;
     }
 
-    getWord(index){
+    getWord(index) {
         return this.wordList[index];
     }
 
-    nextWord(index){
-        return this.wordList[index+1];
+    nextWord(index) {
+        return this.wordList[index + 1];
     }
 
 
@@ -65,10 +65,12 @@ getChapter(index){
 }
 class Chapter{
 
-    constructor(titleElt, innerNodeList){
+    constructor(titleElt, innerNodeList, book){
         this.titleName = titleElt.textContent;
         this.titleElt = titleElt;
         this.innerNodeList = innerNodeList;
+        this.book = book;
+        this.menuElt;
     }
 
 init()
@@ -95,8 +97,21 @@ init()
         return i;
     }
 
+    getPercentage(){
 
-    static buildChapterList(textElt){
+        let localFirst = this.book.getWord(this.getFirstWordIndex()).getPreviousLength();
+        let total = this.book.getTotalCharactersCount();
+        let percentage = 100*(total-(total - localFirst))/total;
+        return percentage;
+    }
+
+    setMenuElement(menuElt){
+        this.menuElt = menuElt;
+    }
+
+
+    static buildChapterList(textElt, book){
+        
 
         let chapterList = [];
         let titleList = textElt.querySelectorAll(".fr-chapter-title");
@@ -111,7 +126,7 @@ init()
                 nodeList.push(nextSibling);
                 nextSibling = nextSibling.nextSibling;
             }
-            let chapter = new Chapter(titleElt,nodeList);
+            let chapter = new Chapter(titleElt,nodeList, book);
             chapterList.push(chapter);
         }
 
@@ -537,6 +552,7 @@ class Reader {
         this.currentWord;
         this.timeout;
         this.readerController = new ReaderController(this);
+        this.readerView = new ReaderView(this);
         this.wordRunner = new WordRunner(this);
         this.lastWordTime;
         this.wastedTime;
@@ -654,6 +670,7 @@ class Reader {
         if (!this.currentWord) {
             this.selectWord(0);
             this.updateRemainingTimeStatistics(this.currentWord.getNextLength());
+            this.save();
             this.updatePlaying();
         }
 
@@ -670,6 +687,7 @@ class Reader {
                 this.selectWord(nextWord.extractIndex());
                 this.currentWord = nextWord;
                 this.updateRemainingTimeStatistics(nextWord.getNextLength());
+                this.save();
                 this.updatePlaying();
             }
         }
@@ -690,18 +708,41 @@ class Reader {
     }
 
     save() {
+        let info = {};
+
+        info['lastWordIndex'] = 0;
+
+
         if (this.currentWord) {
             const currentIndex = this.currentWord.extractIndex();
-            StorageManager.saveLastWord(currentIndex);
+            // StorageManager.saveLastWord(currentIndex);
+            info['lastWordIndex']= currentIndex;
         }
 
-        StorageManager.saveWastedTime(this.wastedTime);
+        info['wastedTime']= this.wastedTime;
+        // StorageManager.saveWastedTime(this.wastedTime);
+        StorageManager.saveLoopInfo(info);
     }
 
     load() {
-        this.wastedTime = StorageManager.loadWastedTime();
 
-        let index = StorageManager.loadLastWord();
+        let index = 0;
+        let wastedTime = 0;
+
+        let info = StorageManager.loadLoopInfo();
+        if(info)
+        {
+            if(info['lastWordIndex']){
+                index = info['lastWordIndex'];
+            }
+
+            if(info['wastedTime']){
+                wastedTime = info['wastedTime'];
+            }
+        }
+        this.wastedTime = wastedTime;
+
+        // let index = StorageManager.loadLastWord();
         this.selectWord(index);
 
         // this.currentWord = this.getWord(index);
@@ -728,7 +769,10 @@ init(chaptersList){
     DOMHelper.attachClickEventS('[data-fr-overlay]', this.selectWordBehindOverlayCallbackBinded);
     this.spaceCallback = this.playCallback.bind(this);
     document.addEventListener('keyup', this.spaceCallback, true);
-    this.initChaptersMenu(chaptersList);
+
+    this.reader.readerView.initChaptersMenu(chaptersList);
+    
+    // this.initChaptersMenu(chaptersList);
     DOMHelper.attachClickEventS('[data-fr-chapters-menu-list]',this.selectChapterCallbackBinded);
 
 }
@@ -742,15 +786,7 @@ clean(){
 
 }
 
-initChaptersMenu(chaptersList){
-    this.chaptersMenuElt = document.querySelector('.fr-chapters-menu-list');
-    chaptersList.forEach((chapter,index)=>{
-        let title = chapter.getTitleName();
-        let chapterMenuElt = DOMHelper.createElement('div','fr-chapters-menu-chapter',title);
-        chapterMenuElt.setAttribute('fr-chapter-menu-index',index);
-        this.chaptersMenuElt.appendChild(chapterMenuElt);
-    });
-}
+
 
 selectChapterCallback(e){
     let index = DOMHelper.getIndexFromChapterMenuElement(e.target);
@@ -812,6 +848,51 @@ displayPause(pauseFlag){
 }
 
 }
+class ReaderView {
+
+    ReaderView(reader) {
+        this.reader;
+
+    }
+
+    initChaptersMenu(chaptersList) {
+        let chapterListMenuElt = document.querySelector('.fr-chapters-menu-list');
+        chaptersList.forEach((chapter, index) => {
+            let title = chapter.getTitleName();
+            // let chapterMenuElt = DOMHelper.createElement('div', 'fr-chapters-menu-chapter', title);
+            let chapterMenuElt = DOMHelper.createElement('div', 'fr-chapters-menu-chapter');
+            chapterMenuElt.setAttribute('fr-chapter-menu-index', index);
+            chapterListMenuElt.appendChild(chapterMenuElt);
+            chapter.setMenuElement(chapterMenuElt);
+
+            chapterMenuElt.appendChild(this.createProgressBar(title));
+
+            let percentage = chapter.getPercentage().toPrecision(3) + '%';           
+            chapterMenuElt.setAttribute('title', percentage);
+
+            let textElt = chapterMenuElt.querySelector('.fr-chapters-menu-progress-bar-text');
+            let height = textElt.getBoundingClientRect().height;
+            chapterMenuElt.style.height= height+"px";
+
+            let progressElt = chapterMenuElt.querySelector('.fr-chapters-menu-progress-bar-progress');
+            progressElt.style.height = height+"px";
+            progressElt.style.width = percentage;
+            
+        });
+    }
+
+    createProgressBar(text,) {
+        let progressEltWrapper = DOMHelper.createElement('div', 'fr-chapters-menu-progress-wrapper');
+        let textElt = DOMHelper.createElement('div', 'fr-chapters-menu-progress-bar-text', text);
+        progressEltWrapper.appendChild(textElt);
+        let progressElt = DOMHelper.createElement('div', 'fr-chapters-menu-progress-bar-progress');
+        // progressElt.style.width = "width:" + percentage +"%;";
+        progressEltWrapper.appendChild(progressElt);
+        return progressEltWrapper;
+    }
+
+}
+
 class Statistics {
     constructor(viewManager,statElt){
         this.vm = viewManager;
@@ -859,7 +940,7 @@ class Statistics {
         wastedTimeElt.textContent = "Time: " + this.getFormattedTime(this.wastedTime/1000);
         
 
-
+//TODO Change calculation
         let percentage = 100*(totalTime-remainingTime)/totalTime;
         let percentageElt = this.statElt.querySelector('[data-fr-percentage-of-completion]');
         percentageElt.textContent = "Completion: "+percentage.toPrecision(3)+'%';
@@ -931,51 +1012,65 @@ class Statistics {
     }
 
 }
-class StorageManager{
+class StorageManager {
 
     static defaultSelectorName = "FR-default-selector";
 
-    static saveLastWord(wordIndex){
-        // let path = window.location.pathname;
-        // window.localStorage.setItem(path,wordIndex);
-        StorageManager.save(wordIndex, '');
-    }    
+    // static saveLastWord(wordIndex) {
+    //     // let path = window.location.pathname;
+    //     // window.localStorage.setItem(path,wordIndex);
+    //     StorageManager.save(wordIndex, '');
+    // }
 
-    static loadLastWord(){
+    // static loadLastWord() {
 
-        let lastWordIndex = StorageManager.load('');
-        
+    //     let lastWordIndex = StorageManager.load('');
 
-        // let path = window.location.pathname;
-        // let lastWordIndex = window.localStorage.getItem(path);
-        if (lastWordIndex){
-            return lastWordIndex;
-        }
-        return 0;
+
+    //     // let path = window.location.pathname;
+    //     // let lastWordIndex = window.localStorage.getItem(path);
+    //     if (lastWordIndex) {
+    //         return lastWordIndex;
+    //     }
+    //     return 0;
+    // }
+
+    // static saveWastedTime(wastedTime) {
+    //     StorageManager.save(wastedTime, 'wasted-time')
+    // }
+
+    // static loadWastedTime() {
+    //     let wastedTime = StorageManager.load('wasted-time');
+    //     console.log('Wasted time load', wastedTime);
+    //     if (wastedTime) {
+    //         return wastedTime;
+    //     }
+    //     return 0;
+    // }
+
+    static saveLoopInfo(info) {
+        // let jsonMap = {};
+        // json['lastWordIndex'] = lastWordIndex;
+        // json['wastedTime'] = wastedTime;
+        let json = JSON.stringify(info);
+        StorageManager.save(json, 'loopInfo');
     }
 
-    static saveWastedTime(wastedTime){
-        StorageManager.save(wastedTime, 'wasted-time')
-    }
-
-    static loadWastedTime(){
-       let wastedTime =  StorageManager.load('wasted-time');
-       console.log('Wasted time load',wastedTime);
-       if(wastedTime){
-           return wastedTime;
-       }
-       return 0;
+    static loadLoopInfo() {
+        let json = StorageManager.load('loopInfo');
+        let info = JSON.parse(json);
+        return info;
     }
 
 
-    static save(value, suffix){
+    static save(value, suffix) {
         let path = window.location.pathname;
-        window.localStorage.setItem(path+'|fr|'+suffix,value);
+        window.localStorage.setItem(path + '|fr|' + suffix, value);
     }
 
-    static load(suffix){
+    static load(suffix) {
         let path = window.location.pathname;
-        let result = window.localStorage.getItem(path+'|fr|'+suffix);
+        let result = window.localStorage.getItem(path + '|fr|' + suffix);
         return result;
     }
     // static putLastWord(wordIndex){
@@ -984,11 +1079,11 @@ class StorageManager{
 
 
 
-    static saveDefaultSelector(selector){
-        window.localStorage.setItem(StorageManager.defaultSelectorName,selector);
+    static saveDefaultSelector(selector) {
+        window.localStorage.setItem(StorageManager.defaultSelectorName, selector);
     }
 
-    static loadDefaultSelector(){
+    static loadDefaultSelector() {
         return window.localStorage.getItem(StorageManager.defaultSelectorName);
 
     }
@@ -1553,13 +1648,14 @@ var styleCSS = `
 .fr-chapters-menu-container{
     position: fixed;
     z-index: 200000;
-    padding-top:100px;
+    margin-top: 60px;
+    padding-top: 20px;
     left: 0;
     top:0;
     height: 100%;
     width: 300px;
     /* border-right: 2px solid #AAA; */
-    overflow: auto;
+    overflow: scroll;
 }
 
 .fr-chapters-menu-list{
@@ -1579,6 +1675,25 @@ var styleCSS = `
 }
 .fr-chapters-menu-chapter:active{
     background-color: #DDD;
+}
+
+.fr-chapters-menu-progress-wrapper{
+    position: relative;
+}
+
+.fr-chapters-menu-progress-bar-text{
+    position: absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    z-index: 1;
+}
+
+.fr-chapters-menu-progress-bar-progress{
+    position: absolute;
+    top:0;
+    left:0;
+    background-color: #dedede;    
 }
 .fr-menu-container{
     position:fixed;
