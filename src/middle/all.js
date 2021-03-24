@@ -860,6 +860,9 @@ class ReaderView {
             let progressElt = chapterMenuElt.querySelector('.fr-chapters-menu-progress-bar-progress');
             progressElt.style.height = height+"px";
             progressElt.style.width = percentage;
+
+            textElt.setAttribute('fr-chapter-menu-index', index);
+            progressElt.setAttribute('fr-chapter-menu-index', index);
             
         });
     }
@@ -1608,8 +1611,8 @@ class WordRunner{
     focusWord(word){
         let rect = word.wordElement.getBoundingClientRect();
         word.boundingRect = rect;
-        this.runnerElt.style.top = rect.top - rect.height/2 + window.scrollY +'px';
-        this.runnerElt.style.left = rect.left - rect.width/2 + window.scrollX +'px'; 
+        this.runnerElt.style.top = rect.top - rect.height/(2*1.5) + window.scrollY +'px';
+        this.runnerElt.style.left = rect.left - rect.width/(2*1.5) + window.scrollX +'px'; 
         this.runnerElt.appendChild(word.wordElement.cloneNode(true));
         this.runnerElt.style.display = "block";
         word.scrollIntoView();

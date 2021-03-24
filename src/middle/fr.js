@@ -210,6 +210,7 @@ var styleCSS = `
 
     .fr-sentence{
         color:gray; 
+        font-size: 120%;
     }
 
     .fr-focus-word{

@@ -27,6 +27,9 @@ class ReaderView {
             let progressElt = chapterMenuElt.querySelector('.fr-chapters-menu-progress-bar-progress');
             progressElt.style.height = height+"px";
             progressElt.style.width = percentage;
+
+            textElt.setAttribute('fr-chapter-menu-index', index);
+            progressElt.setAttribute('fr-chapter-menu-index', index);
             
         });
     }
