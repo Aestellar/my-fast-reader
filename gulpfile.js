@@ -1,15 +1,15 @@
-let gulp = require('gulp');
-let imagemin = require("gulp-imagemin");
-let cache = require("gulp-cache");
-const rename = require("gulp-rename");
-const concat = require("gulp-concat");
-const count = require('gulp-count');
-const insert = require('gulp-insert');
-const extReplace = require('gulp-ext-replace');
-const watch = require('gulp-watch');
-var clipboard = require("gulp-clipboard");
+import gulp from 'gulp';
+import imagemin from "gulp-imagemin";
+import cache from "gulp-cache";
+import rename from "gulp-rename";
+import concat from "gulp-concat";
+import count from 'gulp-count';
+import insert from 'gulp-insert';
+import extReplace from 'gulp-ext-replace';
+import watch from 'gulp-watch';
+import clipboard from "gulp-clipboard";
 
-const fs = require('fs');
+import fs from 'fs';
 
 gulp.task('hello', (cb) => {
     console.log('Hello world!');

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         My Fast Reader
 // @namespace    http://tampermonkey.net/
-// @version      0.1 Mon Mar 22 2021 17:59:41 GMT+0300 (Москва, стандартное время)
+// @version      0.1 Fri Nov 11 2022 01:07:19 GMT+0300 (Москва, стандартное время)
 // @description  try to take over the world!
 // @author       You
 // @match        https://tl.rulate.ru/*
@@ -1813,7 +1813,7 @@ var styleCSS = `
     top:70px;
     right:30px;
     z-index: 100000;
-    opacity: .5;
+    opacity: 0;
     font-size:18px;
     background-color:#f5f5f5;
     background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
